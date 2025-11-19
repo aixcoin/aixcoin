@@ -5,7 +5,6 @@
 #define BITCOINKERNEL_BUILD
 
 #include <kernel/bitcoinkernel.h>
-
 #include <chain.h>
 #include <coins.h>
 #include <consensus/validation.h>
@@ -36,7 +35,6 @@
 #include <util/translation.h>
 #include <validation.h>
 #include <validationinterface.h>
-
 #include <cstddef>
 #include <cstring>
 #include <exception>
@@ -49,6 +47,10 @@
 #include <tuple>
 #include <utility>
 #include <vector>
+
+namespace Consensus {
+struct Params;
+} // namespace Consensus
 
 using kernel::ChainstateRole;
 using util::ImmediateTaskRunner;
@@ -496,6 +498,7 @@ struct btck_TransactionOutPoint: Handle<btck_TransactionOutPoint, COutPoint> {};
 struct btck_Txid: Handle<btck_Txid, Txid> {};
 struct btck_PrecomputedTransactionData : Handle<btck_PrecomputedTransactionData, PrecomputedTransactionData> {};
 struct btck_BlockHeader: Handle<btck_BlockHeader, CBlockHeader> {};
+struct btck_ConsensusParams: Handle<btck_ConsensusParams, Consensus::Params> {};
 
 btck_Transaction* btck_transaction_create(const void* raw_transaction, size_t raw_transaction_len)
 {
@@ -811,6 +814,11 @@ btck_ChainParameters* btck_chain_parameters_create(const btck_ChainType chain_ty
 btck_ChainParameters* btck_chain_parameters_copy(const btck_ChainParameters* chain_parameters)
 {
     return btck_ChainParameters::copy(chain_parameters);
+}
+
+const btck_ConsensusParams* btck_chain_parameters_get_consensus_params(const btck_ChainParameters* chain_parameters)
+{
+    return btck_ConsensusParams::ref(&btck_ChainParameters::get(chain_parameters).GetConsensus());
 }
 
 void btck_chain_parameters_destroy(btck_ChainParameters* chain_parameters)

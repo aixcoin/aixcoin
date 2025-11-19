@@ -226,6 +226,11 @@ typedef struct btck_Block btck_Block;
 typedef struct btck_BlockValidationState btck_BlockValidationState;
 
 /**
+ * Opaque data structure for holding the Consensus Params.
+ */
+typedef struct btck_ConsensusParams btck_ConsensusParams;
+
+/**
  * Opaque data structure for holding the currently known best-chain associated
  * with a chainstate.
  */
@@ -851,6 +856,16 @@ BITCOINKERNEL_API btck_ChainParameters* BITCOINKERNEL_WARN_UNUSED_RESULT btck_ch
  * Copy the chain parameters.
  */
 BITCOINKERNEL_API btck_ChainParameters* BITCOINKERNEL_WARN_UNUSED_RESULT btck_chain_parameters_copy(
+    const btck_ChainParameters* chain_parameters) BITCOINKERNEL_ARG_NONNULL(1);
+
+/**
+ * @brief Get btck_ConsensusParams from btck_ChainParameters. The returned btck_ConsensusParams
+ * are not owned and depend on the lifetime of the btck_ChainParameters.
+ *
+ * @param[in] chain_parameters  Non-null.
+ * @return                      The btck_ConsensusParams.
+ */
+BITCOINKERNEL_API const btck_ConsensusParams* BITCOINKERNEL_WARN_UNUSED_RESULT btck_chain_parameters_get_consensus_params(
     const btck_ChainParameters* chain_parameters) BITCOINKERNEL_ARG_NONNULL(1);
 
 /**
