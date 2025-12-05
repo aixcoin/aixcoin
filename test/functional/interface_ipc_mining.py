@@ -55,7 +55,8 @@ class IPCMiningTest(BitcoinTestFramework):
         self.num_nodes = 2
 
     def setup_nodes(self):
-        self.extra_init = [{"ipcbind": True}, {}]
+        self.extra_init = [{"ipcbind": True}, {"ipcbind": True}]
+        self.extra_args = [[], ["-txindex=1"]]
         super().setup_nodes()
         # Use this function to also load the capnp modules (we cannot use set_test_params for this,
         # as it is being called before knowing whether capnp is available).
@@ -142,6 +143,8 @@ class IPCMiningTest(BitcoinTestFramework):
         async def async_routine():
             ctx, mining = await self.make_mining_ctx()
             blockref = await mining.getTip(ctx)
+            tx1 = None
+            tx2 = None
 
             async with AsyncExitStack() as stack:
                 self.log.debug("Create a template")
@@ -175,9 +178,12 @@ class IPCMiningTest(BitcoinTestFramework):
                 assert template3 is None
 
                 self.log.debug("Wait for another, get one after increase in fees in the mempool")
+                def send_tx1():
+                    nonlocal tx1
+                    tx1 = self.miniwallet.send_self_transfer(fee_rate=10, from_node=self.nodes[0])
                 template4 = await wait_and_do(
                     mining_wait_next_template(template2, stack, ctx, waitoptions),
-                    lambda: self.miniwallet.send_self_transfer(fee_rate=10, from_node=self.nodes[0]))
+                    send_tx1)
                 assert template4 is not None
                 block3 = await mining_get_block(template4, ctx)
                 assert_equal(len(block3.vtx), 2)
@@ -191,12 +197,24 @@ class IPCMiningTest(BitcoinTestFramework):
                 waitoptions.feeThreshold = 1
 
                 self.log.debug("Wait for another, get one after increase in fees in the mempool")
+                def send_tx2():
+                    nonlocal tx2
+                    tx2 = self.miniwallet.send_self_transfer(fee_rate=10, from_node=self.nodes[0])
                 template6 = await wait_and_do(
                     mining_wait_next_template(template5, stack, ctx, waitoptions),
-                    lambda: self.miniwallet.send_self_transfer(fee_rate=10, from_node=self.nodes[0]))
+                    send_tx2)
                 assert template6 is not None
                 block4 = await mining_get_block(template6, ctx)
                 assert_equal(len(block4.vtx), 3)
+                assert tx1 is not None
+                assert tx2 is not None
+
+                self.log.debug("Test getTransactionsByTxID() from mempool")
+                raw_txs_txid = await mining.getTransactionsByTxID(ctx, [tx1["tx"].txid, tx2["tx"].txid, bytes(32)])
+                assert_equal(len(raw_txs_txid.result), 3)
+                assert_equal(raw_txs_txid.result[0].hex(), tx1["hex"])
+                assert_equal(raw_txs_txid.result[1].hex(), tx2["hex"])
+                assert_equal(raw_txs_txid.result[2], b'')
 
                 self.log.debug("Wait for another, but time out, since the fee threshold is set now")
                 template7 = await mining_wait_next_template(template6, stack, ctx, waitoptions)
@@ -210,6 +228,21 @@ class IPCMiningTest(BitcoinTestFramework):
                     template7 = await mining_wait_next_template(template6, stack, ctx, new_waitoptions)
                     assert template7 is None
                 await wait_and_do(wait_for_block(), template6.interruptWait())
+
+                self.log.debug("Test -txindex effect on getTransactionsByTxID()")
+                self.generate(self.nodes[0], 1)
+                self.sync_all()
+
+                # Node 0 without -txindex: transaction won't be found once mined
+                #                          and out of the mempool.
+                raw_txs = await mining.getTransactionsByTxID(ctx, [tx1["tx"].txid])
+                assert_equal(raw_txs.result[0], b'')
+
+                # Node 1 with -txindex: mined transaction will be found.
+                ctx1, init1 = await make_capnp_init_ctx(self, self.nodes[1])
+                mining1 = init1.makeMining(ctx1).result
+                raw_txs = await mining1.getTransactionsByTxID(ctx1, [tx1["tx"].txid])
+                assert_equal(raw_txs.result[0].hex(), tx1["hex"])
 
         asyncio.run(capnp.run(async_routine()))
 
