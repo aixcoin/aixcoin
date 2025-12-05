@@ -216,6 +216,11 @@ class IPCMiningTest(BitcoinTestFramework):
                 assert_equal(raw_txs_txid.result[1].hex(), tx2["hex"])
                 assert_equal(raw_txs_txid.result[2], b'')
 
+                self.log.debug("Test getTransactionsByWitnessID()")
+                raw_txs = await mining.getTransactionsByWitnessID(ctx, [tx1["tx"].wtxid])
+                assert_equal(len(raw_txs.result), 1)
+                assert_equal(raw_txs.result[0].hex(), tx1["hex"])
+
                 self.log.debug("Wait for another, but time out, since the fee threshold is set now")
                 template7 = await mining_wait_next_template(template6, stack, ctx, waitoptions)
                 assert template7 is None
