@@ -224,10 +224,12 @@ void BaseIndex::Sync()
         auto last_locator_write_time{last_log_time};
         while (!m_interrupt) {
 
-            const CBlockIndex* pindex_next = WITH_LOCK(cs_main, return NextSyncBlock(pindex, m_chainstate->m_chain));
+            BlockBatch block_batch;
+            block_batch.first = WITH_LOCK(cs_main, return NextSyncBlock(pindex, m_chainstate->m_chain));
+
             // If pindex_next is null, it means pindex is the chain tip, so
             // commit data indexed so far.
-            if (!pindex_next) {
+            if (!block_batch.first) {
                 SetBestBlockIndex(pindex);
                 // No need to handle errors in Commit. See rationale above.
                 Commit();
@@ -238,27 +240,28 @@ void BaseIndex::Sync()
                 // attached while m_synced is still false, and it would not be
                 // indexed.
                 LOCK(::cs_main);
-                pindex_next = NextSyncBlock(pindex, m_chainstate->m_chain);
-                if (!pindex_next) {
+                block_batch.first = NextSyncBlock(pindex, m_chainstate->m_chain);
+                if (!block_batch.first) {
                     m_synced = true;
                     break;
                 }
             }
-            if (pindex_next->pprev != pindex && !Rewind(pindex, pindex_next->pprev)) {
+            if (block_batch.first->pprev != pindex && !Rewind(pindex, block_batch.first->pprev)) {
                 FatalErrorf("Failed to rewind %s to a previous chain tip", GetName());
                 return;
             }
 
             // For now, process a single block at time
-            if (!ProcessBlocks(/*start=*/*pindex_next, /*end=*/*pindex_next)) {
-                // If failed due to an interruption, we haven't processed the block.
+            block_batch.last = block_batch.first;
+            if (!ProcessBlocks(*block_batch.first, *block_batch.last)) {
+                // If failed due to an interruption, we haven't processed the range.
                 if (m_interrupt) break;
                 // Otherwise this is an unrecoverable error and we want to stop.
                 return; // error logged internally
             }
 
             // Update last processed block for next round
-            pindex = pindex_next;
+            pindex = block_batch.last;
 
             auto current_time{NodeClock::now()};
             if (current_time - last_log_time >= SYNC_LOG_INTERVAL) {
