@@ -30,6 +30,7 @@
 #include <validation.h>
 #include <validationinterface.h>
 
+#include <algorithm>
 #include <cassert>
 #include <compare>
 #include <cstdint>
@@ -225,7 +226,17 @@ void BaseIndex::Sync()
         while (!m_interrupt) {
 
             BlockBatch block_batch;
-            block_batch.first = WITH_LOCK(cs_main, return NextSyncBlock(pindex, m_chainstate->m_chain));
+            {
+                LOCK(cs_main);
+                block_batch.first = NextSyncBlock(pindex, m_chainstate->m_chain);
+                if (block_batch.first) {
+                    const int start_height = block_batch.first->nHeight;
+                    const int tip_height = m_chainstate->m_chain.Height();
+                    // Compute the last height in the batch without exceeding the chain tip
+                    const int batch_end_height = std::min(start_height + m_num_blocks_batch - 1, tip_height);
+                    block_batch.last = m_chainstate->m_chain[batch_end_height];
+                }
+            }
 
             // If pindex_next is null, it means pindex is the chain tip, so
             // commit data indexed so far.
@@ -245,14 +256,14 @@ void BaseIndex::Sync()
                     m_synced = true;
                     break;
                 }
+                // Just process one block in case of tip change
+                block_batch.last = block_batch.first;
             }
             if (block_batch.first->pprev != pindex && !Rewind(pindex, block_batch.first->pprev)) {
                 FatalErrorf("Failed to rewind %s to a previous chain tip", GetName());
                 return;
             }
 
-            // For now, process a single block at time
-            block_batch.last = block_batch.first;
             if (!ProcessBlocks(*block_batch.first, *block_batch.last)) {
                 // If failed due to an interruption, we haven't processed the range.
                 if (m_interrupt) break;
