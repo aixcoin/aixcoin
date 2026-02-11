@@ -5,7 +5,7 @@
 #include <common/args.h>
 
 #include <common/settings.h>
-#include <logging.h>
+#include <util/log.h>
 #include <sync.h>
 #include <tinyformat.h>
 #include <univalue.h>

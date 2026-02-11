@@ -4,9 +4,9 @@
 
 #include <node/abort.h>
 
-#include <logging.h>
 #include <node/interface_ui.h>
 #include <node/warnings.h>
+#include <util/log.h>
 #include <util/signalinterrupt.h>
 #include <util/translation.h>
 

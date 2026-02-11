@@ -5,7 +5,7 @@
 #include <node/txreconciliation.h>
 
 #include <common/system.h>
-#include <logging.h>
+#include <util/log.h>
 #include <util/check.h>
 
 #include <unordered_map>
