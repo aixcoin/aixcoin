@@ -24,14 +24,14 @@ from test_framework.script import (
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
-    assert_not_equal
+    assert_not_equal,
 )
 from test_framework.wallet import MiniWallet
 from test_framework.ipc_util import (
     destroying,
-    mining_create_block_template,
     load_capnp_modules,
     make_capnp_init_ctx,
+    mining_create_block_template,
     mining_get_block,
     mining_get_coinbase_tx,
     mining_wait_next_template,
@@ -215,8 +215,9 @@ class IPCMiningTest(BitcoinTestFramework):
 
     def run_ipc_option_override_test(self):
         self.log.info("Running IPC option override test")
-        # Set an absurd reserved weight. `-blockreservedweight` is RPC-only, so
-        # with this setting RPC templates would be empty. IPC clients set
+        # Confirm that BlockCreateOptions.blockReservedWeight takes precedence
+        # over -blockreservedweight. Set an absurdly high -blockreservedweight
+        # value that would result in empty blocks to verify this. IPC clients set
         # blockReservedWeight per template request and are unaffected; later in
         # the test the IPC template includes a mempool transaction.
         self.restart_node(0, extra_args=[f"-blockreservedweight={MAX_BLOCK_WEIGHT}"])
