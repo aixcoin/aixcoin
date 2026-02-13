@@ -81,6 +81,13 @@ set(MIN_GCC_VERSION 12.1)
 # https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
 set(MIN_MSVC_VERSION 19.50)
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS MIN_CLANG_VERSION)
+    message(FATAL_ERROR "Clang >= ${MIN_CLANG_VERSION} required.")
+  endif()
+endif()
+
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
