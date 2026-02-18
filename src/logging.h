@@ -124,7 +124,7 @@ namespace BCLog {
         bool SuppressionsActive() const { return m_suppression_active; }
     };
 
-    class Logger
+    class Logger : public util::log::Logger
     {
     public:
         struct BufferedLog {
@@ -184,6 +184,9 @@ namespace BCLog {
 
         fs::path m_file_path;
         std::atomic<bool> m_reopen_file{false};
+
+        Logger();
+        ~Logger();
 
         /** Send a string to the log output */
         void LogPrintStr(std::string_view str, SourceLocation&& source_loc, BCLog::LogFlags category, BCLog::Level level, bool should_ratelimit)
