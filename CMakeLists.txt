@@ -75,6 +75,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND NOT CMAKE_HOST_APPLE)
   set(CMAKE_PLATFORM_HAS_INSTALLNAME FALSE)
 endif()
 enable_language(CXX)
+set(MIN_CLANG_VERSION 17.0)
+set(MIN_GCC_VERSION 12.1)
+# VS 18.x uses 19.50-19.59 as MSVC version values
+# https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
+set(MIN_MSVC_VERSION 19.50)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
