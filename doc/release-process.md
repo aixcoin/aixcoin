@@ -8,6 +8,7 @@ Release Process
 * Update release candidate version in `CMakeLists.txt` (`CLIENT_VERSION_RC`).
 * Update manpages (after rebuilding the binaries), see [gen-manpages.py](/contrib/devtools/README.md#gen-manpagespy).
 * Update bitcoin.conf and commit changes if they exist, see [gen-bitcoin-conf.sh](/contrib/devtools/README.md#gen-bitcoin-confsh).
+* Regenerate [doc/openrpc.json](/doc/openrpc.json) (after rebuilding the binaries), see [gen-openrpc.py](/contrib/devtools/README.md#gen-openrpcpy).
 
 ### Before every major and minor release
 
