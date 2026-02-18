@@ -85,6 +85,24 @@ options, as all its configuration is set at the top of the file. It runs many ti
 pypy3 contrib/devtools/headerssync-params.py
 ```
 
+gen-openrpc.py
+===================
+
+Generates the [OpenRPC](https://open-rpc.org/) specification in `doc/openrpc.json` from the
+structured RPC metadata exported by a running `bitcoind`. This requires a build with all
+optional modules (wallet, ZMQ, external signer) enabled.
+
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+./build/bin/bitcoind -regtest -daemon
+contrib/devtools/gen-openrpc.py --output doc/openrpc.json -c ./build/bin/bitcoin-cli -- -regtest
+./build/bin/bitcoin-cli -regtest stop
+```
+
+Run `contrib/devtools/gen-openrpc.py --help` for additional options including reading from
+a pre-captured JSON file.
+
 gen-bitcoin-conf.sh
 ===================
 
