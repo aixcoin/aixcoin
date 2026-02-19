@@ -2,13 +2,20 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <algorithm>
-#include <cstddef>
+#include <common/system_ram.h>
 #include <node/dbcache.h>
 
+#include <algorithm>
+#include <cstddef>
+#include <optional>
+
 namespace node {
-size_t GetDefaultCache() noexcept
+size_t GetTotalRam() noexcept { return TryGetTotalRam().value_or(FALLBACK_RAM_BYTES); }
+
+size_t GetDefaultCache(std::optional<size_t> total_ram) noexcept
 {
-    return std::min(DEFAULT_DB_CACHE, MAX_DBCACHE_BYTES);
+    if (!total_ram) total_ram.emplace(GetTotalRam());
+    const size_t usable{*total_ram > RESERVED_RAM ? *total_ram - RESERVED_RAM : 0};
+    return std::clamp(usable / 4, MIN_DEFAULT_DBCACHE, std::min(MAX_DEFAULT_DBCACHE, MAX_DBCACHE_BYTES));
 }
 } // namespace node

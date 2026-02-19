@@ -7,9 +7,9 @@
 
 #include <node/dbcache.h>
 #include <kernel/caches.h>
-#include <util/byte_units.h>
 
 #include <cstddef>
+#include <optional>
 
 class ArgsManager;
 
@@ -27,11 +27,12 @@ CacheSizes CalculateCacheSizes(const ArgsManager& args, size_t n_indexes = 0);
 
 constexpr bool ShouldWarnOversizedDbCache(size_t dbcache, size_t total_ram) noexcept
 {
-    return (total_ram < 2048_MiB) ? dbcache > GetDefaultCache()
-                                  : dbcache > (total_ram / 100) * 75;
+    return (total_ram < FALLBACK_RAM_BYTES) ? dbcache > GetDefaultCache(total_ram)
+                                            : dbcache > (total_ram / 100) * 75;
 }
 
 void LogOversizedDbCache(const ArgsManager& args) noexcept;
+void LogAutoDbCacheSettings() noexcept;
 } // namespace node
 
 #endif // BITCOIN_NODE_CACHES_H
