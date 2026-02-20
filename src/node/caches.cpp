@@ -51,6 +51,8 @@ CacheSizes CalculateCacheSizes(const ArgsManager& args, size_t n_indexes)
     //   non-repetitive lookups across the entire blockchain.
     // - txospenderindex (5%): serves gettxspendingprevout RPCs with very
     //   specific, rarely repeated outpoint queries.
+    // - coinstatsindex: intentionally not included here, since usage pattern
+    //   does not seem to suggest it would be necessary to cache.
     IndexCacheSizes index_sizes;
     index_sizes.tx_index = std::min(total_cache * 10 / 100, args.GetBoolArg("-txindex", DEFAULT_TXINDEX) ? MAX_TX_INDEX_CACHE : 0);
     index_sizes.txospender_index = std::min(total_cache * 5 / 100, args.GetBoolArg("-txospenderindex", DEFAULT_TXOSPENDERINDEX) ? MAX_TXOSPENDER_INDEX_CACHE : 0);
