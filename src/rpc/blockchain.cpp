@@ -257,7 +257,7 @@ static RPCMethod getblockcount()
                     HelpExampleCli("getblockcount", "")
             + HelpExampleRpc("getblockcount", "")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     ChainstateManager& chainman = EnsureAnyChainman(request.context);
     LOCK(cs_main);
@@ -278,7 +278,7 @@ static RPCMethod getbestblockhash()
                     HelpExampleCli("getbestblockhash", "")
             + HelpExampleRpc("getbestblockhash", "")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     ChainstateManager& chainman = EnsureAnyChainman(request.context);
     LOCK(cs_main);
@@ -308,7 +308,7 @@ static RPCMethod waitfornewblock()
                     HelpExampleCli("waitfornewblock", "1000")
             + HelpExampleRpc("waitfornewblock", "1000")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     int timeout = 0;
     if (!request.params[0].isNull())
@@ -367,7 +367,7 @@ static RPCMethod waitforblock()
                     HelpExampleCli("waitforblock", "\"0000000000079f8ef3d2c688c244eb7a4570b24c9ed7b4a8c619eb02596f8862\" 1000")
             + HelpExampleRpc("waitforblock", "\"0000000000079f8ef3d2c688c244eb7a4570b24c9ed7b4a8c619eb02596f8862\", 1000")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     int timeout = 0;
 
@@ -429,7 +429,7 @@ static RPCMethod waitforblockheight()
                     HelpExampleCli("waitforblockheight", "100 1000")
             + HelpExampleRpc("waitforblockheight", "100, 1000")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     int timeout = 0;
 
@@ -481,7 +481,7 @@ static RPCMethod syncwithvalidationinterfacequeue()
                     HelpExampleCli("syncwithvalidationinterfacequeue","")
             + HelpExampleRpc("syncwithvalidationinterfacequeue","")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     NodeContext& node = EnsureAnyNodeContext(request.context);
     CHECK_NONFATAL(node.validation_signals)->SyncWithValidationInterfaceQueue();
@@ -502,7 +502,7 @@ static RPCMethod getdifficulty()
                     HelpExampleCli("getdifficulty", "")
             + HelpExampleRpc("getdifficulty", "")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     ChainstateManager& chainman = EnsureAnyChainman(request.context);
     LOCK(cs_main);
@@ -532,7 +532,7 @@ static RPCMethod getblockfrompeer()
             HelpExampleCli("getblockfrompeer", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\" 0")
             + HelpExampleRpc("getblockfrompeer", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\" 0")
         },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     const NodeContext& node = EnsureAnyNodeContext(request.context);
     ChainstateManager& chainman = EnsureChainman(node);
@@ -580,7 +580,7 @@ static RPCMethod getblockhash()
                     HelpExampleCli("getblockhash", "1000")
             + HelpExampleRpc("getblockhash", "1000")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     ChainstateManager& chainman = EnsureAnyChainman(request.context);
     LOCK(cs_main);
@@ -634,7 +634,7 @@ static RPCMethod getblockheader()
                     HelpExampleCli("getblockheader", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
             + HelpExampleRpc("getblockheader", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     uint256 hash(ParseHashV(request.params[0], "hash"));
 
@@ -837,7 +837,7 @@ static RPCMethod getblock()
                     HelpExampleCli("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
             + HelpExampleRpc("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     uint256 hash(ParseHashV(request.params[0], "blockhash"));
 
@@ -920,7 +920,7 @@ static RPCMethod pruneblockchain()
                     HelpExampleCli("pruneblockchain", "1000")
             + HelpExampleRpc("pruneblockchain", "1000")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     ChainstateManager& chainman = EnsureAnyChainman(request.context);
     if (!chainman.m_blockman.IsPruneMode()) {
@@ -1061,7 +1061,7 @@ static RPCMethod gettxoutsetinfo()
                     HelpExampleRpc("gettxoutsetinfo", R"("none", 1000)") +
                     HelpExampleRpc("gettxoutsetinfo", R"("none", "00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09")")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     UniValue ret(UniValue::VOBJ);
 
@@ -1213,7 +1213,7 @@ static RPCMethod gettxout()
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("gettxout", "\"txid\", 1")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     NodeContext& node = EnsureAnyNodeContext(request.context);
     ChainstateManager& chainman = EnsureChainman(node);
@@ -1275,7 +1275,7 @@ static RPCMethod verifychain()
                     HelpExampleCli("verifychain", "")
             + HelpExampleRpc("verifychain", "")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     const int check_level{request.params[0].isNull() ? DEFAULT_CHECKLEVEL : request.params[0].getInt<int>()};
     const int check_depth{request.params[1].isNull() ? DEFAULT_CHECKBLOCKS : request.params[1].getInt<int>()};
@@ -1400,7 +1400,7 @@ RPCMethod getblockchaininfo()
             HelpExampleCli("getblockchaininfo", "")
             + HelpExampleRpc("getblockchaininfo", "")
         },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     ChainstateManager& chainman = EnsureAnyChainman(request.context);
     LOCK(cs_main);
@@ -1506,7 +1506,7 @@ RPCMethod getdeploymentinfo()
             }
         },
         RPCExamples{ HelpExampleCli("getdeploymentinfo", "") + HelpExampleRpc("getdeploymentinfo", "") },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
         {
             const ChainstateManager& chainman = EnsureAnyChainman(request.context);
             LOCK(cs_main);
@@ -1578,7 +1578,7 @@ static RPCMethod getchaintips()
                     HelpExampleCli("getchaintips", "")
             + HelpExampleRpc("getchaintips", "")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     ChainstateManager& chainman = EnsureAnyChainman(request.context);
     LOCK(cs_main);
@@ -1666,7 +1666,7 @@ static RPCMethod preciousblock()
                     HelpExampleCli("preciousblock", "\"blockhash\"")
             + HelpExampleRpc("preciousblock", "\"blockhash\"")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     uint256 hash(ParseHashV(request.params[0], "blockhash"));
     CBlockIndex* pblockindex;
@@ -1726,7 +1726,7 @@ static RPCMethod invalidateblock()
                     HelpExampleCli("invalidateblock", "\"blockhash\"")
             + HelpExampleRpc("invalidateblock", "\"blockhash\"")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     ChainstateManager& chainman = EnsureAnyChainman(request.context);
     uint256 hash(ParseHashV(request.params[0], "blockhash"));
@@ -1772,7 +1772,7 @@ static RPCMethod reconsiderblock()
                     HelpExampleCli("reconsiderblock", "\"blockhash\"")
             + HelpExampleRpc("reconsiderblock", "\"blockhash\"")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     ChainstateManager& chainman = EnsureAnyChainman(request.context);
     uint256 hash(ParseHashV(request.params[0], "blockhash"));
@@ -1815,7 +1815,7 @@ static RPCMethod getchaintxstats()
                     HelpExampleCli("getchaintxstats", "")
             + HelpExampleRpc("getchaintxstats", "2016")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     ChainstateManager& chainman = EnsureAnyChainman(request.context);
     const CBlockIndex* pindex;
@@ -1998,7 +1998,7 @@ static RPCMethod getblockstats()
                     HelpExampleRpc("getblockstats", R"("00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09", ["minfeerate","avgfeerate"])") +
                     HelpExampleRpc("getblockstats", R"(1000, ["minfeerate","avgfeerate"])")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     ChainstateManager& chainman = EnsureAnyChainman(request.context);
     const CBlockIndex& pindex{*CHECK_NONFATAL(ParseHashOrHeight(request.params[0], chainman))};
@@ -2353,7 +2353,7 @@ static RPCMethod scantxoutset()
             HelpExampleRpc("scantxoutset", "\"status\"") +
             HelpExampleRpc("scantxoutset", "\"abort\"")
         },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     UniValue result(UniValue::VOBJ);
     const auto action{self.Arg<std::string_view>("action")};
@@ -2549,7 +2549,7 @@ static RPCMethod scanblocks()
             HelpExampleRpc("scanblocks", "\"start\", [\"addr(bcrt1q4u4nsgk6ug0sqz7r3rj9tykjxrsl0yy4d0wwte)\"], 100, 150, \"basic\"") +
             HelpExampleRpc("scanblocks", "\"status\"")
         },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     UniValue ret(UniValue::VOBJ);
     auto action{self.Arg<std::string_view>("action")};
@@ -2745,7 +2745,7 @@ static RPCMethod getdescriptoractivity()
         RPCExamples{
             HelpExampleCli("getdescriptoractivity", "'[\"000000000000000000001347062c12fded7c528943c8ce133987e2e2f5a840ee\"]' '[\"addr(bc1qzl6nsgqzu89a66l50cvwapnkw5shh23zarqkw9)\"]'")
         },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     UniValue ret(UniValue::VOBJ);
     UniValue activity(UniValue::VARR);
@@ -2950,7 +2950,7 @@ static RPCMethod getblockfilter()
                     HelpExampleCli("getblockfilter", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\" \"basic\"") +
                     HelpExampleRpc("getblockfilter", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\", \"basic\"")
                 },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     uint256 block_hash = ParseHashV(request.params[0], "blockhash");
     auto filtertype_name{self.Arg<std::string_view>("filtertype")};
@@ -3084,7 +3084,7 @@ static RPCMethod dumptxoutset()
             HelpExampleCli("-rpcclienttimeout=0 dumptxoutset", "utxo.dat rollback") +
             HelpExampleCli("-rpcclienttimeout=0 -named dumptxoutset", R"(utxo.dat rollback=853456)")
         },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     NodeContext& node = EnsureAnyNodeContext(request.context);
     const CBlockIndex* tip{WITH_LOCK(::cs_main, return node.chainman->ActiveChain().Tip())};
@@ -3376,7 +3376,7 @@ static RPCMethod loadtxoutset()
         RPCExamples{
             HelpExampleCli("-rpcclienttimeout=0 loadtxoutset", "utxo.dat")
         },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     NodeContext& node = EnsureAnyNodeContext(request.context);
     ChainstateManager& chainman = EnsureChainman(node);
@@ -3450,7 +3450,7 @@ return RPCMethod{
             HelpExampleCli("getchainstates", "")
     + HelpExampleRpc("getchainstates", "")
         },
-        [&](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
+        [](const RPCMethod& self, const JSONRPCRequest& request) -> UniValue
 {
     LOCK(cs_main);
     UniValue obj(UniValue::VOBJ);
