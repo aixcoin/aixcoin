@@ -44,16 +44,23 @@ CacheSizes CalculateCacheSizes(const ArgsManager& args, size_t n_indexes)
 {
     size_t total_cache{CalculateDbCacheBytes(args)};
 
+    // Allocate proportional to usage pattern benefit:
+    // - blockfilterindex (15%): serves BIP 157 light clients that repeatedly
+    //   query recent blocks, benefiting most from LevelDB cache.
+    // - txindex (10%): serves getrawtransaction RPCs with mostly unique,
+    //   non-repetitive lookups across the entire blockchain.
+    // - txospenderindex (5%): serves gettxspendingprevout RPCs with very
+    //   specific, rarely repeated outpoint queries.
     IndexCacheSizes index_sizes;
-    index_sizes.tx_index = std::min(total_cache / 8, args.GetBoolArg("-txindex", DEFAULT_TXINDEX) ? MAX_TX_INDEX_CACHE : 0);
-    total_cache -= index_sizes.tx_index;
-    index_sizes.txospender_index = std::min(total_cache / 8, args.GetBoolArg("-txospenderindex", DEFAULT_TXOSPENDERINDEX) ? MAX_TXOSPENDER_INDEX_CACHE : 0);
-    total_cache -= index_sizes.txospender_index;
+    index_sizes.tx_index = std::min(total_cache * 10 / 100, args.GetBoolArg("-txindex", DEFAULT_TXINDEX) ? MAX_TX_INDEX_CACHE : 0);
+    index_sizes.txospender_index = std::min(total_cache * 5 / 100, args.GetBoolArg("-txospenderindex", DEFAULT_TXOSPENDERINDEX) ? MAX_TXOSPENDER_INDEX_CACHE : 0);
     if (n_indexes > 0) {
-        size_t max_cache = std::min(total_cache / 8, MAX_FILTER_INDEX_CACHE);
+        size_t max_cache = std::min(total_cache * 15 / 100, MAX_FILTER_INDEX_CACHE);
         index_sizes.filter_index = max_cache / n_indexes;
         total_cache -= index_sizes.filter_index * n_indexes;
     }
+    total_cache -= index_sizes.tx_index;
+    total_cache -= index_sizes.txospender_index;
     return {index_sizes, kernel::CacheSizes{total_cache}};
 }
 
