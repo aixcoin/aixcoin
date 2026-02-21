@@ -8,7 +8,9 @@
 #include <atomic>
 #include <capnp/capability.h>
 #include <capnp/rpc.h>
+#include <cassert>
 #include <condition_variable>
+#include <cstdint>
 #include <cstring>
 #include <functional>
 #include <future>
@@ -16,9 +18,7 @@
 #include <kj/async-io.h>
 #include <kj/common.h>
 #include <kj/debug.h>
-#include <kj/exception.h>
 #include <kj/memory.h>
-#include <kj/string.h>
 #include <kj/test.h>
 #include <memory>
 #include <mp/proxy.h>
@@ -31,7 +31,6 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <system_error>
 #include <thread>
 #include <type_traits>
 #include <utility>
@@ -212,6 +211,15 @@ KJ_TEST("Call FooInterface methods")
     KJ_EXPECT(mut.message == "init build pass call return read");
 
     KJ_EXPECT(foo->passFn([]{ return 10; }) == 10);
+
+    std::vector<FooDataRef> data_in;
+    data_in.push_back(std::make_shared<FooData>(FooData{'H', 'i'}));
+    data_in.push_back(nullptr);
+    std::vector<FooDataRef> data_out{foo->passDataPointers(data_in)};
+    KJ_EXPECT(data_out.size() == 2);
+    KJ_REQUIRE(data_out[0] != nullptr);
+    KJ_EXPECT(*data_out[0] == *data_in[0]);
+    KJ_EXPECT(!data_out[1]);
 }
 
 KJ_TEST("Call IPC method after client connection is closed")
@@ -317,7 +325,7 @@ KJ_TEST("Calling IPC method, disconnecting and blocking during the call")
     signal.set_value();
 }
 
-KJ_TEST("Make simultaneous IPC calls to trigger 'thread busy' error")
+KJ_TEST("Make simultaneous IPC calls on single remote thread")
 {
     TestSetup setup;
     ProxyClient<messages::FooInterface>* foo = setup.client.get();
@@ -336,51 +344,39 @@ KJ_TEST("Make simultaneous IPC calls to trigger 'thread busy' error")
         request_thread = &tc.request_threads.at(foo->m_context.connection)->m_client;
     });
 
-    setup.server->m_impl->m_fn = [&] {
-        try
-        {
-            signal.get_future().get();
-        }
-        catch (const std::future_error& e)
-        {
-            KJ_EXPECT(e.code() == std::make_error_code(std::future_errc::future_already_retrieved));
-        }
+    // Call callIntFnAsync 3 times with n=100, 200, 300
+    std::atomic<int> expected = 100;
+
+    setup.server->m_impl->m_int_fn = [&](int n) {
+        assert(n == expected);
+        expected += 100;
+        return n;
     };
 
     auto client{foo->m_client};
-    bool caught_thread_busy = false;
-    // NOTE: '3' was chosen because it was the lowest number
-    // of simultaneous calls required to reliably catch a "thread busy" error
     std::atomic<size_t> running{3};
     foo->m_context.loop->sync([&]
     {
         for (size_t i = 0; i < running; i++)
         {
-            auto request{client.callFnAsyncRequest()};
+            auto request{client.callIntFnAsyncRequest()};
             auto context{request.initContext()};
             context.setCallbackThread(*callback_thread);
             context.setThread(*request_thread);
+            request.setArg(100 * (i+1));
             foo->m_context.loop->m_task_set->add(request.send().then(
-                [&](auto&& results) {
+                [&running, &tc, i](auto&& results) {
+                    assert(results.getResult() == static_cast<int32_t>(100 * (i+1)));
                     running -= 1;
                     tc.waiter->m_cv.notify_all();
-                },
-                [&](kj::Exception&& e) {
-                    KJ_EXPECT(std::string_view{e.getDescription().cStr()} ==
-                        "remote exception: std::exception: thread busy");
-                    caught_thread_busy = true;
-                    running -= 1;
-                    signal.set_value();
-                    tc.waiter->m_cv.notify_all();
-                }
-            ));
+                }));
         }
     });
     {
         Lock lock(tc.waiter->m_mutex);
         tc.waiter->wait(lock, [&running] { return running == 0; });
     }
-    KJ_EXPECT(caught_thread_busy);
+    KJ_EXPECT(expected == 400);
 }
 
 } // namespace test
