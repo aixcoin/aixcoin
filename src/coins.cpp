@@ -432,20 +432,24 @@ std::optional<Coin> CCoinsViewErrorCatcher::PeekCoin(const COutPoint& outpoint) 
 CoinsViewOverlay::CoinsViewOverlay(CCoinsView* base_in, bool deterministic) noexcept :
     CCoinsViewCache{base_in, deterministic}, m_hasher{deterministic} {}
 
-bool CoinsViewOverlay::ProcessInput() const noexcept
+bool CoinsViewOverlay::ProcessInputInBackground() const noexcept
 {
-    const auto i{m_input_head++};
+    const auto i{m_input_head.fetch_add(1, std::memory_order_relaxed)};
     if (i >= m_inputs.size()) [[unlikely]] return false;
 
     auto& input{m_inputs[i]};
     // Inputs spending a coin from a tx earlier in the block won't be in the cache or db
     if (std::ranges::binary_search(m_txids, m_hasher(input.outpoint.hash))) {
-        input.ready = true;
+        // We can use relaxed ordering here since we don't write the coin.
+        input.ready.test_and_set(std::memory_order_relaxed);
+        input.ready.notify_one();
         return true;
     }
 
     if (auto coin{base->PeekCoin(input.outpoint)}) [[likely]] input.coin.emplace(std::move(*coin));
-    input.ready = true;
+    // We need release here, so writing coin in the line above happens before the main thread acquires.
+    input.ready.test_and_set(std::memory_order_release);
+    input.ready.notify_one();
     return true;
 }
 
@@ -459,9 +463,9 @@ std::optional<Coin> CoinsViewOverlay::FetchCoinFromBase(const COutPoint& outpoin
         if (input.outpoint != outpoint) continue;
         // We advance the tail since the input is cached and not accessed through this method again.
         m_input_tail = i + 1;
-        // Check if the coin is ready to be read.
-        while (!input.ready) {
-            ProcessInput();
+        // Check if the coin is ready to be read. We need to acquire to match the worker thread's release.
+        while (!input.ready.test(std::memory_order_acquire)) {
+            ProcessInputInBackground();
         }
         // We can move the coin since we won't access this input again.
         if (input.coin) [[likely]] return std::move(*input.coin);
@@ -494,9 +498,11 @@ std::optional<Coin> CoinsViewOverlay::FetchCoinFromBase(const COutPoint& outpoin
 
 void CoinsViewOverlay::StopFetching() noexcept
 {
-    // Clear the queue (it holds references into the currently processed block).
+    if (m_inputs.empty()) return;
+    // Skip fetching the rest of the inputs by moving the head to the end.
+    m_input_head.store(m_inputs.size(), std::memory_order_relaxed);
     m_inputs.clear();
-    m_input_head = 0;
+    m_input_head.store(0, std::memory_order_relaxed);
     m_input_tail = 0;
     m_txids.clear();
 }
@@ -505,4 +511,27 @@ void CoinsViewOverlay::Reset() noexcept
 {
     StopFetching();
     CCoinsViewCache::Reset();
+}
+
+void CoinsViewOverlay::Flush(bool reallocate_cache)
+{
+    StopFetching();
+    CCoinsViewCache::Flush(reallocate_cache);
+}
+
+void CoinsViewOverlay::Sync()
+{
+    StopFetching();
+    CCoinsViewCache::Sync();
+}
+
+void CoinsViewOverlay::SetBackend(CCoinsView& view_in)
+{
+    StopFetching();
+    CCoinsViewCache::SetBackend(view_in);
+}
+
+CoinsViewOverlay::~CoinsViewOverlay()
+{
+    StopFetching();
 }

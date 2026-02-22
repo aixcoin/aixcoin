@@ -21,6 +21,7 @@
 #include <cassert>
 #include <cstdint>
 
+#include <atomic>
 #include <functional>
 #include <optional>
 #include <ranges>
@@ -362,7 +363,7 @@ public:
     bool HaveCoin(const COutPoint &outpoint) const override;
     uint256 GetBestBlock() const override;
     std::vector<uint256> GetHeadBlocks() const override;
-    void SetBackend(CCoinsView &viewIn);
+    virtual void SetBackend(CCoinsView& in_view);
     void BatchWrite(CoinsViewCacheCursor& cursor, const uint256& hashBlock) override;
     std::unique_ptr<CCoinsViewCursor> Cursor() const override;
     size_t EstimateSize() const override;
@@ -467,7 +468,7 @@ public:
      * If reallocate_cache is false, the cache will retain the same memory footprint
      * after flushing and should be destroyed to deallocate.
      */
-    void Flush(bool reallocate_cache = true);
+    virtual void Flush(bool reallocate_cache = true);
 
     /**
      * Push the modifications applied to this cache to its base while retaining
@@ -475,7 +476,7 @@ public:
      * Failure to call this method or Flush() before destruction will cause the changes
      * to be forgotten.
      */
-    void Sync();
+    virtual void Sync();
 
     /**
      * Removes the UTXO with the given outpoint from the cache, if it is
@@ -544,18 +545,18 @@ private:
 class CoinsViewOverlay : public CCoinsViewCache
 {
 private:
-    //! The latest input not yet being fetched.
-    mutable uint32_t m_input_head{0};
-    //! The latest input not yet accessed by a consumer.
+    //! The latest input not yet being fetched. Workers atomically increment this when fetching.
+    mutable std::atomic_uint32_t m_input_head{0};
+    //! The latest input not yet accessed by a consumer. Only the main thread increments this.
     mutable uint32_t m_input_tail{0};
 
     //! The inputs of the block which is being fetched.
     struct InputToFetch {
-        //! Set this after setting the coin. Test this before reading the coin.
-        bool ready{false};
+        //! Workers set this after setting the coin. The main thread tests this before reading the coin.
+        std::atomic_flag ready{};
         //! The outpoint of the input to fetch.
         const COutPoint& outpoint;
-        //! The coin that will be fetched.
+        //! The coin that workers will fetch and main thread will insert into cache.
         std::optional<Coin> coin{std::nullopt};
 
         /**
@@ -607,14 +608,14 @@ private:
     std::vector<uint64_t> m_txids{};
 
     /**
-     * Claim and fetch the next input in the queue.
+     * Claim and fetch the next input in the queue. Safe to call from any thread.
      *
      * @return true if there are more inputs in the queue to fetch
      * @return false if there are no more inputs in the queue to fetch
      */
-    bool ProcessInput() const noexcept;
+    bool ProcessInputInBackground() const noexcept;
 
-    //! Stop fetching and clear state.
+    //! Stop all worker threads.
     void StopFetching() noexcept;
 
     std::optional<Coin> FetchCoinFromBase(const COutPoint& outpoint) const override;
@@ -626,7 +627,12 @@ public:
     //! Start fetching all block inputs in the background.
     [[nodiscard]] ResetGuard StartFetching(const CBlock& block LIFETIMEBOUND) noexcept;
 
+    void Flush(bool reallocate_cache = true) override;
+    void Sync() override;
+    void SetBackend(CCoinsView& view_in) override;
+
     explicit CoinsViewOverlay(CCoinsView* base_in, bool deterministic = false) noexcept;
+    ~CoinsViewOverlay() override;
 };
 
 //! Utility function to add all of a transaction's outputs to a cache.
