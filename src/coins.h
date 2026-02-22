@@ -11,6 +11,7 @@
 #include <core_memusage.h>
 #include <memusage.h>
 #include <primitives/transaction.h>
+#include <random.h>
 #include <serialize.h>
 #include <support/allocators/pool.h>
 #include <uint256.h>
@@ -22,6 +23,7 @@
 
 #include <functional>
 #include <optional>
+#include <ranges>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -563,6 +565,45 @@ private:
     };
     mutable std::vector<InputToFetch> m_inputs{};
 
+    class QuickHashHasher
+    {
+        uint64_t m_key[4];
+
+    public:
+        explicit QuickHashHasher(bool deterministic) noexcept
+        {
+            if (deterministic) {
+                for (uint64_t& k : m_key) k = 0;
+            } else {
+                FastRandomContext rng;
+                for (uint64_t& k : m_key) k = rng.rand64();
+            }
+        }
+
+#if defined(__clang__)
+        __attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+        uint64_t operator()(const Txid& txid) const noexcept
+        {
+            const auto& hash_input{txid.ToUint256()};
+            uint64_t out{0};
+            for (const auto i : std::views::iota(0, 4)) out += hash_input.GetUint64(i) ^ m_key[i];
+            return out;
+        }
+    };
+    QuickHashHasher m_hasher;
+
+    /**
+     * The sorted quick hash of txids of all txs in the block being fetched. This is used to filter out inputs that
+     * are created earlier in the same block, since they will not be in the db or the cache.
+     * Using an 8 byte quick hash is a performance improvement, versus storing the entire 32 bytes. In case of a
+     * collision of an input being spent having the same quick hash as a txid of a tx elsewhere in the block,
+     * the input will not be fetched in the background. The input will still be fetched later on the main thread.
+     * Using a sorted vector and binary search lookups is a performance improvement. It is faster than
+     * using std::unordered_set with salted hash or std::set.
+     */
+    std::vector<uint64_t> m_txids{};
+
     /**
      * Claim and fetch the next input in the queue.
      *
@@ -583,7 +624,7 @@ public:
     //! Start fetching all block inputs in the background.
     [[nodiscard]] ResetGuard StartFetching(const CBlock& block LIFETIMEBOUND) noexcept;
 
-    using CCoinsViewCache::CCoinsViewCache;
+    explicit CoinsViewOverlay(CCoinsView* base_in, bool deterministic = false) noexcept;
 };
 
 //! Utility function to add all of a transaction's outputs to a cache.

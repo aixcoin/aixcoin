@@ -10,7 +10,7 @@
 #include <util/log.h>
 #include <util/trace.h>
 
-#include <ranges>
+#include <algorithm>
 
 TRACEPOINT_SEMAPHORE(utxocache, add);
 TRACEPOINT_SEMAPHORE(utxocache, spent);
@@ -429,12 +429,20 @@ std::optional<Coin> CCoinsViewErrorCatcher::PeekCoin(const COutPoint& outpoint) 
     return ExecuteBackedWrapper<std::optional<Coin>>([&]() { return CCoinsViewBacked::PeekCoin(outpoint); }, m_err_callbacks);
 }
 
+CoinsViewOverlay::CoinsViewOverlay(CCoinsView* base_in, bool deterministic) noexcept :
+    CCoinsViewCache{base_in, deterministic}, m_hasher{deterministic} {}
+
 bool CoinsViewOverlay::ProcessInput() const noexcept
 {
     const auto i{m_input_head++};
     if (i >= m_inputs.size()) [[unlikely]] return false;
 
     auto& input{m_inputs[i]};
+    // Inputs spending a coin from a tx earlier in the block won't be in the cache or db
+    if (std::ranges::binary_search(m_txids, m_hasher(input.outpoint.hash))) {
+        return true;
+    }
+
     if (auto coin{base->PeekCoin(input.outpoint)}) [[likely]] input.coin.emplace(std::move(*coin));
     return true;
 }
@@ -451,24 +459,30 @@ std::optional<Coin> CoinsViewOverlay::FetchCoinFromBase(const COutPoint& outpoin
         m_input_tail = i + 1;
         // We can move the coin since we won't access this input again.
         if (input.coin) [[likely]] return std::move(*input.coin);
-        // This block has missing or spent inputs.
+        // This block has missing or spent inputs or there is a txid quick hash collision.
         break;
     }
 
-    // We will only get in here for BIP30 checks or a block with missing or spent inputs.
+    // We will only get in here for BIP30 checks, txid quick hash collisions or a block with missing or spent inputs.
     return base->PeekCoin(outpoint);
 }
 
 [[nodiscard]] CCoinsViewCache::ResetGuard CoinsViewOverlay::StartFetching(const CBlock& block LIFETIMEBOUND) noexcept
 {
     Assert(m_inputs.empty());
-    // Loop through the inputs of the block and set them in the queue.
+    // Loop through the inputs of the block and set them in the queue. Also construct the set of txids to filter.
     for (const auto& tx : block.vtx | std::views::drop(1)) [[likely]] {
         for (const auto& input : tx->vin) [[likely]] m_inputs.emplace_back(input.prevout);
+        m_txids.emplace_back(m_hasher(tx->GetHash()));
     }
     // Only start if we have something to fetch.
     if (!m_inputs.empty()) [[likely]] {
+        // Sort txids so we can do binary search lookups.
+        std::ranges::sort(m_txids);
         while (ProcessInput()) [[likely]] {}
+    }
+    if (m_inputs.empty()) {
+        m_txids.clear();
     }
     return CreateResetGuard();
 }
@@ -479,6 +493,7 @@ void CoinsViewOverlay::StopFetching() noexcept
     m_inputs.clear();
     m_input_head = 0;
     m_input_tail = 0;
+    m_txids.clear();
 }
 
 void CoinsViewOverlay::Reset() noexcept
