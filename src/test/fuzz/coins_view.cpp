@@ -8,6 +8,7 @@
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
 #include <policy/policy.h>
+#include <primitives/block.h>
 #include <primitives/transaction.h>
 #include <script/interpreter.h>
 #include <test/fuzz/FuzzedDataProvider.h>
@@ -20,6 +21,7 @@
 #include <cassert>
 #include <algorithm>
 #include <cstdint>
+#include <cstring>
 #include <functional>
 #include <limits>
 #include <memory>
@@ -94,6 +96,34 @@ public:
 
     using CCoinsViewCache::CCoinsViewCache;
 };
+
+//! Build a random block for async cache testing
+CBlock BuildRandomBlock(FuzzedDataProvider& fuzzed_data_provider)
+{
+    CBlock block;
+    Txid prevhash{Txid::FromUint256(ConsumeUInt256(fuzzed_data_provider))};
+    LIMITED_WHILE(fuzzed_data_provider.ConsumeBool(), 100)
+    {
+        CMutableTransaction tx;
+        LIMITED_WHILE(fuzzed_data_provider.ConsumeBool(), 100)
+        {
+            Txid txid;
+            CallOneOf(
+                fuzzed_data_provider,
+                [&] { txid = Txid::FromUint256(ConsumeUInt256(fuzzed_data_provider)); },
+                [&] { txid = prevhash; },
+                [&] {
+                    uint256 u{prevhash.ToUint256()};
+                    std::swap_ranges(u.begin(), u.begin() + 8, u.begin() + 8);
+                    txid = Txid::FromUint256(u);
+                });
+            tx.vin.emplace_back(COutPoint{txid, fuzzed_data_provider.ConsumeIntegral<uint32_t>()});
+        }
+        prevhash = tx.GetHash();
+        block.vtx.push_back(MakeTransactionRef(tx));
+    }
+    return block;
+}
 } // namespace
 
 void initialize_coins_view()
@@ -401,5 +431,7 @@ FUZZ_TARGET(coins_view_overlay, .init = initialize_coins_view)
     CCoinsView backend_base_coins_view;
     MutationGuardCoinsViewCache backend_cache{&backend_base_coins_view, /*deterministic=*/true};
     CoinsViewOverlay coins_view_cache{&backend_cache, /*deterministic=*/true};
+    CBlock block{BuildRandomBlock(fuzzed_data_provider)};
+    const auto reset_guard{coins_view_cache.StartFetching(block)};
     TestCoinsView(fuzzed_data_provider, coins_view_cache, backend_cache, /*is_db=*/false);
 }
