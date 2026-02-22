@@ -8,6 +8,7 @@
 #include <random.h>
 #include <uint256.h>
 #include <util/log.h>
+#include <util/threadpool.h>
 #include <util/trace.h>
 
 #include <algorithm>
@@ -429,8 +430,16 @@ std::optional<Coin> CCoinsViewErrorCatcher::PeekCoin(const COutPoint& outpoint) 
     return ExecuteBackedWrapper<std::optional<Coin>>([&]() { return CCoinsViewBacked::PeekCoin(outpoint); }, m_err_callbacks);
 }
 
-CoinsViewOverlay::CoinsViewOverlay(CCoinsView* base_in, bool deterministic) noexcept :
-    CCoinsViewCache{base_in, deterministic}, m_hasher{deterministic} {}
+CoinsViewOverlay::CoinsViewOverlay(CCoinsView* base_in, bool deterministic, std::shared_ptr<ThreadPool> thread_pool) noexcept :
+    CCoinsViewCache{base_in, deterministic}, m_hasher{deterministic}
+{
+    if (thread_pool) {
+        m_thread_pool = thread_pool;
+    } else {
+        m_thread_pool = std::make_shared<ThreadPool>("inputfetch");
+        m_thread_pool->Start(WORKER_THREADS);
+    }
+}
 
 bool CoinsViewOverlay::ProcessInputInBackground() const noexcept
 {
@@ -465,7 +474,12 @@ std::optional<Coin> CoinsViewOverlay::FetchCoinFromBase(const COutPoint& outpoin
         m_input_tail = i + 1;
         // Check if the coin is ready to be read. We need to acquire to match the worker thread's release.
         while (!input.ready.test(std::memory_order_acquire)) {
-            ProcessInputInBackground();
+            // Work instead of waiting if the coin is not ready
+            if (!ProcessInputInBackground()) {
+                // No more work, just wait
+                input.ready.wait(/*old=*/false, std::memory_order_acquire);
+                break;
+            }
         }
         // We can move the coin since we won't access this input again.
         if (input.coin) [[likely]] return std::move(*input.coin);
@@ -479,18 +493,26 @@ std::optional<Coin> CoinsViewOverlay::FetchCoinFromBase(const COutPoint& outpoin
 
 [[nodiscard]] CCoinsViewCache::ResetGuard CoinsViewOverlay::StartFetching(const CBlock& block LIFETIMEBOUND) noexcept
 {
-    Assert(m_inputs.empty());
+    Assert(m_futures.empty());
     // Loop through the inputs of the block and set them in the queue. Also construct the set of txids to filter.
     for (const auto& tx : block.vtx | std::views::drop(1)) [[likely]] {
         for (const auto& input : tx->vin) [[likely]] m_inputs.emplace_back(input.prevout);
         m_txids.emplace_back(m_hasher(tx->GetHash()));
     }
-    // Only start if we have something to fetch.
+    // Only start threads if we have something to fetch.
     if (!m_inputs.empty()) [[likely]] {
         // Sort txids so we can do binary search lookups.
         std::ranges::sort(m_txids);
+        // Start workers.
+        std::vector<std::function<void()>> tasks(m_thread_pool->WorkersCount(), [this] {
+            while (ProcessInputInBackground()) {}
+        });
+        if (auto futures{m_thread_pool->Submit(std::move(tasks))}; futures.has_value()) {
+            m_futures = std::move(*futures);
+        }
     }
-    if (m_inputs.empty()) {
+    if (m_futures.empty()) {
+        m_inputs.clear();
         m_txids.clear();
     }
     return CreateResetGuard();
@@ -498,9 +520,12 @@ std::optional<Coin> CoinsViewOverlay::FetchCoinFromBase(const COutPoint& outpoin
 
 void CoinsViewOverlay::StopFetching() noexcept
 {
-    if (m_inputs.empty()) return;
+    if (m_futures.empty()) return;
     // Skip fetching the rest of the inputs by moving the head to the end.
     m_input_head.store(m_inputs.size(), std::memory_order_relaxed);
+    // Wait for all threads to stop.
+    for (auto& future : m_futures) future.wait();
+    m_futures.clear();
     m_inputs.clear();
     m_input_head.store(0, std::memory_order_relaxed);
     m_input_tail = 0;

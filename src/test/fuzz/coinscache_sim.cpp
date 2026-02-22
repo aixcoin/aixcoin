@@ -4,11 +4,13 @@
 
 #include <coins.h>
 #include <crypto/sha256.h>
+#include <logging.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
+#include <util/threadpool.h>
 
 #include <cassert>
 #include <cstdint>
@@ -202,9 +204,18 @@ struct OverlayFetchScope
     OverlayFetchScope(CoinsViewOverlay& view, const CBlock& block) : guard(view.StartFetching(block)) {}
 };
 
+std::shared_ptr<ThreadPool> g_thread_pool{};
+
 } // namespace
 
-FUZZ_TARGET(coinscache_sim)
+static void setup_coinscache_sim()
+{
+    LogInstance().DisableLogging();
+    g_thread_pool = std::make_shared<ThreadPool>("fuzz_coinscache_sim_async");
+    g_thread_pool->Start(WORKER_THREADS);
+}
+
+FUZZ_TARGET(coinscache_sim, .init = setup_coinscache_sim)
 {
     /** Precomputed COutPoint and CCoins values. */
     static const PrecomputedData data;
@@ -396,7 +407,7 @@ FUZZ_TARGET(coinscache_sim)
                         caches.emplace_back(new CCoinsViewCache(&*caches.back(), /*deterministic=*/true));
                         overlay_fetch_scopes.emplace_back(nullptr);
                     } else {
-                        caches.emplace_back(new CoinsViewOverlay(&*caches.back(), /*deterministic=*/true));
+                        caches.emplace_back(new CoinsViewOverlay(&*caches.back(), /*deterministic=*/true, g_thread_pool));
                         auto& overlay{static_cast<CoinsViewOverlay&>(*caches.back())};
                         overlay_fetch_scopes.emplace_back(std::make_unique<OverlayFetchScope>(overlay, data.block));
                     }

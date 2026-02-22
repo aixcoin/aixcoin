@@ -10,11 +10,14 @@
 #include <uint256.h>
 #include <util/byte_units.h>
 #include <util/hasher.h>
+#include <util/threadpool.h>
 
 #include <boost/test/unit_test.hpp>
 
 #include <algorithm>
 #include <cstdint>
+#include <cstring>
+#include <memory>
 #include <ranges>
 #include <unordered_set>
 
@@ -204,6 +207,19 @@ BOOST_AUTO_TEST_CASE(access_non_input_coin)
     const auto reset_guard{view.StartFetching(block)};
     const auto& accessed_coin{view.AccessCoin(outpoint)};
     BOOST_CHECK(!accessed_coin.IsSpent());
+}
+
+// Test that the main thread can make progress with no workers
+BOOST_AUTO_TEST_CASE(fetch_main_thread)
+{
+    const auto block{CreateBlock()};
+    CCoinsViewDB db{{.path = "", .cache_bytes = 1_MiB, .memory_only = true}, {}};
+    CCoinsViewCache main_cache{&db};
+    PopulateView(block, main_cache);
+    auto thread_pool{std::make_shared<ThreadPool>("inputfetch_test_no_workers")};
+    CoinsViewOverlay view{&main_cache, /*deterministic=*/false, thread_pool};
+    const auto reset_guard{view.StartFetching(block)};
+    CheckCache(block, view);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
