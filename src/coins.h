@@ -551,6 +551,8 @@ private:
 
     //! The inputs of the block which is being fetched.
     struct InputToFetch {
+        //! Set this after setting the coin. Test this before reading the coin.
+        bool ready{false};
         //! The outpoint of the input to fetch.
         const COutPoint& outpoint;
         //! The coin that will be fetched.
