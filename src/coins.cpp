@@ -10,6 +10,8 @@
 #include <util/log.h>
 #include <util/trace.h>
 
+#include <ranges>
+
 TRACEPOINT_SEMAPHORE(utxocache, add);
 TRACEPOINT_SEMAPHORE(utxocache, spent);
 TRACEPOINT_SEMAPHORE(utxocache, uncache);
@@ -425,4 +427,62 @@ bool CCoinsViewErrorCatcher::HaveCoin(const COutPoint& outpoint) const
 std::optional<Coin> CCoinsViewErrorCatcher::PeekCoin(const COutPoint& outpoint) const
 {
     return ExecuteBackedWrapper<std::optional<Coin>>([&]() { return CCoinsViewBacked::PeekCoin(outpoint); }, m_err_callbacks);
+}
+
+bool CoinsViewOverlay::ProcessInput() const noexcept
+{
+    const auto i{m_input_head++};
+    if (i >= m_inputs.size()) [[unlikely]] return false;
+
+    auto& input{m_inputs[i]};
+    if (auto coin{base->PeekCoin(input.outpoint)}) [[likely]] input.coin.emplace(std::move(*coin));
+    return true;
+}
+
+std::optional<Coin> CoinsViewOverlay::FetchCoinFromBase(const COutPoint& outpoint) const
+{
+    // This assumes ConnectBlock accesses all inputs in the same order as they are added to m_inputs
+    // in StartFetching. Some outpoints are not accessed because they are created by the block, so we scan until we
+    // come across the requested input.
+    for (const auto i : std::views::iota(m_input_tail, m_inputs.size())) [[likely]] {
+        auto& input{m_inputs[i]};
+        if (input.outpoint != outpoint) continue;
+        // We advance the tail since the input is cached and not accessed through this method again.
+        m_input_tail = i + 1;
+        // We can move the coin since we won't access this input again.
+        if (input.coin) [[likely]] return std::move(*input.coin);
+        // This block has missing or spent inputs.
+        break;
+    }
+
+    // We will only get in here for BIP30 checks or a block with missing or spent inputs.
+    return base->PeekCoin(outpoint);
+}
+
+[[nodiscard]] CCoinsViewCache::ResetGuard CoinsViewOverlay::StartFetching(const CBlock& block LIFETIMEBOUND) noexcept
+{
+    Assert(m_inputs.empty());
+    // Loop through the inputs of the block and set them in the queue.
+    for (const auto& tx : block.vtx | std::views::drop(1)) [[likely]] {
+        for (const auto& input : tx->vin) [[likely]] m_inputs.emplace_back(input.prevout);
+    }
+    // Only start if we have something to fetch.
+    if (!m_inputs.empty()) [[likely]] {
+        while (ProcessInput()) [[likely]] {}
+    }
+    return CreateResetGuard();
+}
+
+void CoinsViewOverlay::StopFetching() noexcept
+{
+    // Clear the queue (it holds references into the currently processed block).
+    m_inputs.clear();
+    m_input_head = 0;
+    m_input_tail = 0;
+}
+
+void CoinsViewOverlay::Reset() noexcept
+{
+    StopFetching();
+    CCoinsViewCache::Reset();
 }
