@@ -91,8 +91,9 @@ def load_capnp_modules(config):
     }
 
 
-async def make_capnp_init_ctx(self):
-    node = self.nodes[0]
+async def make_capnp_init_ctx(self, node=None):
+    if node is None:
+        node = self.nodes[0]
     # Establish a connection, and create Init proxy object.
     connection = await capnp.AsyncIoStream.create_unix_connection(node.ipc_socket_path)
     client = capnp.TwoPartyClient(connection)
