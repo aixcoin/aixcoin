@@ -9,13 +9,14 @@ from io import BytesIO
 import re
 from test_framework.blocktools import NULL_OUTPOINT
 from test_framework.messages import (
-    MAX_BLOCK_WEIGHT,
     CTransaction,
     CTxIn,
     CTxOut,
     CTxInWitness,
     ser_uint256,
     COIN,
+    MAX_BLOCK_WEIGHT,
+    MAX_BLOCK_SIGOPS_COST,
 )
 from test_framework.script import (
     CScript,
@@ -24,14 +25,14 @@ from test_framework.script import (
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
-    assert_not_equal
+    assert_not_equal,
 )
 from test_framework.wallet import MiniWallet
 from test_framework.ipc_util import (
     destroying,
-    mining_create_block_template,
     load_capnp_modules,
     make_capnp_init_ctx,
+    mining_create_block_template,
     mining_get_block,
     mining_get_coinbase_tx,
     mining_wait_next_template,
@@ -106,6 +107,29 @@ class IPCMiningTest(BitcoinTestFramework):
         self.log.debug("Create Mining proxy object")
         mining = init.makeMining(ctx).result
         return ctx, mining
+
+    async def assert_create_fails(self, ctx, mining, opts, expected_msg):
+        """Assert that createNewBlock fails with the expected remote exception."""
+        try:
+            await mining.createNewBlock(ctx, opts)
+            raise AssertionError("createNewBlock unexpectedly succeeded")
+        except capnp.lib.capnp.KjException as e:
+            if e.type == "DISCONNECTED":
+                # The remote exception isn't caught currently and leads to a
+                # std::terminate call. In that case, verify the expected message
+                # via bitcoind stderr before restarting.
+                # This bug is fixed with
+                # https://github.com/bitcoin-core/libmultiprocess/pull/218
+                assert_equal(e.description, "Peer disconnected.")
+                self.nodes[0].wait_until_stopped(
+                    expected_ret_code=(-11, -6, 1, 66),
+                    expected_stderr=re.compile(re.escape(expected_msg)),
+                )
+                self.start_node(0)
+            else:
+                # Not expected until bitcoin-core/libmultiprocess#218
+                assert_equal(e.description, f"remote exception: std::exception: {expected_msg}")
+                assert_equal(e.type, "FAILED")
 
     def run_mining_interface_test(self):
         """Test Mining interface methods."""
@@ -215,8 +239,9 @@ class IPCMiningTest(BitcoinTestFramework):
 
     def run_ipc_option_override_test(self):
         self.log.info("Running IPC option override test")
-        # Set an absurd reserved weight. `-blockreservedweight` is RPC-only, so
-        # with this setting RPC templates would be empty. IPC clients set
+        # Confirm that BlockCreateOptions.blockReservedWeight takes precedence
+        # over -blockreservedweight. Set an absurdly high -blockreservedweight
+        # value that would result in empty blocks to verify this. IPC clients set
         # blockReservedWeight per template request and are unaffected; later in
         # the test the IPC template includes a mempool transaction.
         self.restart_node(0, extra_args=[f"-blockreservedweight={MAX_BLOCK_WEIGHT}"])
@@ -241,23 +266,28 @@ class IPCMiningTest(BitcoinTestFramework):
 
             self.log.debug("Enforce minimum reserved weight for IPC clients too")
             opts.blockReservedWeight = 0
-            try:
-                await mining.createNewBlock(ctx, opts)
-                raise AssertionError("createNewBlock unexpectedly succeeded")
-            except capnp.lib.capnp.KjException as e:
-                if e.type == "DISCONNECTED":
-                    # The remote exception isn't caught currently and leads to a
-                    # std::terminate call. Just detect and restart in this case.
-                    # This bug is fixed with
-                    # https://github.com/bitcoin-core/libmultiprocess/pull/218
-                    assert_equal(e.description, "Peer disconnected.")
-                    self.nodes[0].wait_until_stopped(expected_ret_code=(-11, -6, 1, 66), expected_stderr=re.compile(""))
-                    self.start_node(0)
-                else:
-                    assert_equal(e.description, "remote exception: std::exception: block_reserved_weight (0) must be at least 2000 weight units")
-                    assert_equal(e.type, "FAILED")
+            await self.assert_create_fails(ctx, mining, opts,
+                "block_reserved_weight (0) is lower than minimum safety value of (2000)")
+
+        async def async_routine_check_max_reserved_weight():
+            self.log.debug("Enforce maximum reserved weight for IPC clients too")
+            ctx, mining = await self.make_mining_ctx()
+            opts = self.capnp_modules['mining'].BlockCreateOptions()
+            opts.blockReservedWeight = MAX_BLOCK_WEIGHT + 1
+            await self.assert_create_fails(ctx, mining, opts,
+                f"block_reserved_weight ({MAX_BLOCK_WEIGHT + 1}) exceeds consensus maximum block weight ({MAX_BLOCK_WEIGHT})")
+
+        async def async_routine_check_sigops_limit():
+            self.log.debug("Enforce sigops limit for IPC clients too")
+            ctx, mining = await self.make_mining_ctx()
+            opts = self.capnp_modules['mining'].BlockCreateOptions()
+            opts.coinbaseOutputMaxAdditionalSigops = MAX_BLOCK_SIGOPS_COST + 1
+            await self.assert_create_fails(ctx, mining, opts,
+                f"coinbase_output_max_additional_sigops ({MAX_BLOCK_SIGOPS_COST + 1}) exceeds consensus maximum block sigops cost ({MAX_BLOCK_SIGOPS_COST})")
 
         asyncio.run(capnp.run(async_routine()))
+        asyncio.run(capnp.run(async_routine_check_max_reserved_weight()))
+        asyncio.run(capnp.run(async_routine_check_sigops_limit()))
 
     def run_coinbase_and_submission_test(self):
         """Test coinbase construction (getCoinbaseTx) and block submission (submitSolution)."""
