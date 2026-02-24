@@ -46,13 +46,13 @@ std::partial_ordering CompareChunks(std::span<const FeeFrac> chunks0, std::span<
         if (done_0 || done_1) {
             // If a single side has no points left, act as if AB has slope tail_feerate(of 0).
             Assume(!(done_0 && done_1));
-            cmp = FeeRateCompare(slope_ap, FeeFrac(0, 1));
+            cmp = ByRatio{slope_ap} <=> ByRatio{FeeFrac(0, 1)};
         } else {
             // If both sides have points left, compute B, and the slope of AB explicitly.
             const FeeFrac& point_b = next_point(!unproc_side);
             const auto slope_ab = point_b - point_a;
             Assume(slope_ab.size >= slope_ap.size);
-            cmp = FeeRateCompare(slope_ap, slope_ab);
+            cmp = ByRatio{slope_ap} <=> ByRatio{slope_ab};
 
             // If B and P have the same size, B can be marked as processed (in addition to P, see
             // below), as we've already performed a comparison at this size.
