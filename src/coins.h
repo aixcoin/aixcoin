@@ -11,6 +11,7 @@
 #include <core_memusage.h>
 #include <memusage.h>
 #include <primitives/transaction.h>
+#include <random.h>
 #include <serialize.h>
 #include <support/allocators/pool.h>
 #include <uint256.h>
@@ -21,8 +22,20 @@
 #include <cassert>
 #include <cstdint>
 
+#include <atomic>
 #include <functional>
+#include <future>
+#include <memory>
+#include <optional>
+#include <ranges>
 #include <unordered_map>
+#include <utility>
+#include <vector>
+
+constexpr auto WORKER_THREADS{4};
+
+class CBlock;
+class ThreadPool;
 
 /**
  * A UTXO entry.
@@ -356,7 +369,7 @@ public:
     bool HaveCoin(const COutPoint &outpoint) const override;
     uint256 GetBestBlock() const override;
     std::vector<uint256> GetHeadBlocks() const override;
-    void SetBackend(CCoinsView &viewIn);
+    virtual void SetBackend(CCoinsView& in_view);
     void BatchWrite(CoinsViewCacheCursor& cursor, const uint256& hashBlock) override;
     std::unique_ptr<CCoinsViewCursor> Cursor() const override;
     size_t EstimateSize() const override;
@@ -389,7 +402,7 @@ protected:
      * Discard all modifications made to this cache without flushing to the base view.
      * This can be used to efficiently reuse a cache instance across multiple operations.
      */
-    void Reset() noexcept;
+    virtual void Reset() noexcept;
 
     /* Fetch the coin from base. Used for cache misses in FetchCoin. */
     virtual std::optional<Coin> FetchCoinFromBase(const COutPoint& outpoint) const;
@@ -461,7 +474,7 @@ public:
      * If reallocate_cache is false, the cache will retain the same memory footprint
      * after flushing and should be destroyed to deallocate.
      */
-    void Flush(bool reallocate_cache = true);
+    virtual void Flush(bool reallocate_cache = true);
 
     /**
      * Push the modifications applied to this cache to its base while retaining
@@ -469,7 +482,7 @@ public:
      * Failure to call this method or Flush() before destruction will cause the changes
      * to be forgotten.
      */
-    void Sync();
+    virtual void Sync();
 
     /**
      * Removes the UTXO with the given outpoint from the cache, if it is
@@ -527,24 +540,163 @@ private:
 };
 
 /**
- * CCoinsViewCache overlay that avoids populating/mutating parent cache layers on cache misses.
+ * CCoinsViewCache subclass that asynchronously fetches all block inputs in parallel during ConnectBlock without
+ * mutating the base cache.
  *
- * This is achieved by fetching coins from the base view using PeekCoin() instead of GetCoin(),
- * so intermediate CCoinsViewCache layers are not filled.
+ * Only used in ConnectBlock to pass as an ephemeral view that can be reset if the block is invalid.
+ * It provides the same interface as CCoinsViewCache. It overrides all methods that mutate base,
+ * stopping threads before calling superclass.
+ * It adds an additional StartFetching method to provide the block.
  *
- * Used during ConnectBlock() as an ephemeral, resettable top-level view that is flushed only
- * on success, so invalid blocks don't pollute the underlying cache.
+ * When a block is passed to StartFetching, the inputs of the block are flattened into a vector of InputToFetch
+ * objects. A sorted vector of "quick hashes" of all block txids (m_txids) is also constructed. StartFetching then
+ * submits worker tasks to a ThreadPool and keeps the returned futures alive until fetching is stopped.
+ *
+ * ProcessInputInBackground() atomically fetches and increments m_input_head, so each thread can only access a
+ * single element of the m_inputs vector at a time. Workers race to claim inputs, so they may fetch elements in any
+ * order. If the fetched index is greater than the size of m_inputs, no more inputs can be fetched and false is
+ * returned.
+ *
+ * The worker claims the InputToFetch at this index. Before fetching, it checks if the input's txid prefix matches
+ * any shorttxid in the sorted vector using binary search. If there is a match, the input is spending a coin created
+ * earlier in the same block and won't be in the base cache, so fetching is skipped. Otherwise, the coin is fetched
+ * from the base cache and moved to the InputToFetch object. The ready flag is then set with a release memory order.
+ * This allows the ready flag to be used as a memory fence, guaranteeing the coin being written to the object will
+ * have happened before another thread tests the flag with an acquire memory order.
+ *
+ * When a coin is requested from the cache on the main thread, if a cache miss occurs the coin is first looked up
+ * from the m_inputs vector instead of the base cache. The vector is scanned beginning at the element at
+ * m_input_tail. If the InputToFetch object has the same outpoint as requested, m_input_tail is advanced to the next
+ * index so the previous inputs do not need to be scanned again. The InputToFetch object's ready flag is tested with
+ * an acquire memory order. If the object is ready, the background worker has completed and the coin can be moved
+ * from the InputToFetch. If the object is not ready, the main thread will call ProcessInputInBackground() itself
+ * until the requested coin becomes ready. This allows the main thread to keep making progress (by fetching other
+ * inputs) rather than blocking on a specific worker.
+ *
+ * StopFetching() is called before mutating operations (Flush/Sync/Reset/SetBackend) and in the destructor. It stops
+ * fetching by moving m_input_head to the end of m_inputs (so workers quickly exit), then waits for all futures to
+ * complete and clears the per-block state (m_inputs/m_txids).
+ *
+ *       Workers advance m_input_head to fetch inputs. Main thread advances m_input_tail to consume.
+ *
+ *       Before workers start:
+ *
+ *                 m_input_head
+ *                 m_input_tail
+ *                      │
+ *                      ▼
+ *                 ┌─────────┬─────────┬─────────┬─────────┬─────────┬─────────┬─────────┬─────────┬─────────┐
+ *       m_inputs: │ waiting │ waiting │ waiting │ waiting │ waiting │ waiting │ waiting │ waiting │ waiting │
+ *                 │         │         │         │         │         │         │         │         │         │
+ *                 └─────────┴─────────┴─────────┴─────────┴─────────┴─────────┴─────────┴─────────┴─────────┘
+ *
+ *       After workers start:
+ *
+ *                                       Worker 2            Worker 0  Worker 3  Worker 1  m_input_head
+ *                                          │                   │         │         │         │
+ *                                          ▼                   ▼         ▼         ▼         ▼
+ *                 ┌─────────┬─────────┬─────────┬─────────┬─────────┬─────────┬─────────┬─────────┬─────────┐
+ *       m_inputs: │  ready  │  ready  │fetching │  ready  │fetching │fetching │fetching │ waiting │ waiting │
+ *                 │consumed │    ✓    │    ●    │    ✓    │    ●    │    ●    │    ●    │         │         │
+ *                 └─────────┴─────────┴─────────┴─────────┴─────────┴─────────┴─────────┴─────────┴─────────┘
+ *                                ▲
+ *                                │
+ *                           m_input_tail
  */
 class CoinsViewOverlay : public CCoinsViewCache
 {
 private:
-    std::optional<Coin> FetchCoinFromBase(const COutPoint& outpoint) const override
+    //! The latest input not yet being fetched. Workers atomically increment this when fetching.
+    mutable std::atomic_uint32_t m_input_head{0};
+    //! The latest input not yet accessed by a consumer. Only the main thread increments this.
+    mutable uint32_t m_input_tail{0};
+
+    //! The inputs of the block which is being fetched.
+    struct InputToFetch {
+        //! Workers set this after setting the coin. The main thread tests this before reading the coin.
+        std::atomic_flag ready{};
+        //! The outpoint of the input to fetch.
+        const COutPoint& outpoint;
+        //! The coin that workers will fetch and main thread will insert into cache.
+        std::optional<Coin> coin{std::nullopt};
+
+        /**
+         * We only move when m_inputs reallocates during setup.
+         * We never move after work begins, so we don't have to copy other members.
+         */
+        InputToFetch(InputToFetch&& other) noexcept : outpoint{other.outpoint} {}
+        explicit InputToFetch(const COutPoint& o LIFETIMEBOUND) noexcept : outpoint{o} {}
+    };
+    mutable std::vector<InputToFetch> m_inputs{};
+
+    class QuickHashHasher
     {
-        return base->PeekCoin(outpoint);
-    }
+        uint64_t m_key[4];
+
+    public:
+        explicit QuickHashHasher(bool deterministic) noexcept
+        {
+            if (deterministic) {
+                for (uint64_t& k : m_key) k = 0;
+            } else {
+                FastRandomContext rng;
+                for (uint64_t& k : m_key) k = rng.rand64();
+            }
+        }
+
+#if defined(__clang__)
+        __attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+        uint64_t operator()(const Txid& txid) const noexcept
+        {
+            const auto& hash_input{txid.ToUint256()};
+            uint64_t out{0};
+            for (const auto i : std::views::iota(0, 4)) out += hash_input.GetUint64(i) ^ m_key[i];
+            return out;
+        }
+    };
+    QuickHashHasher m_hasher;
+
+    /**
+     * The sorted quick hash of txids of all txs in the block being fetched. This is used to filter out inputs that
+     * are created earlier in the same block, since they will not be in the db or the cache.
+     * Using an 8 byte quick hash is a performance improvement, versus storing the entire 32 bytes. In case of a
+     * collision of an input being spent having the same quick hash as a txid of a tx elsewhere in the block,
+     * the input will not be fetched in the background. The input will still be fetched later on the main thread.
+     * Using a sorted vector and binary search lookups is a performance improvement. It is faster than
+     * using std::unordered_set with salted hash or std::set.
+     */
+    std::vector<uint64_t> m_txids{};
+
+    /**
+     * Claim and fetch the next input in the queue. Safe to call from any thread.
+     *
+     * @return true if there are more inputs in the queue to fetch
+     * @return false if there are no more inputs in the queue to fetch
+     */
+    bool ProcessInputInBackground() const noexcept;
+
+    //! Stop all worker threads.
+    void StopFetching() noexcept;
+
+    std::optional<Coin> FetchCoinFromBase(const COutPoint& outpoint) const override;
+
+    std::vector<std::future<void>> m_futures{};
+    std::shared_ptr<ThreadPool> m_thread_pool;
+protected:
+    void Reset() noexcept override;
 
 public:
-    using CCoinsViewCache::CCoinsViewCache;
+    //! Start fetching all block inputs in the background.
+    [[nodiscard]] ResetGuard StartFetching(const CBlock& block LIFETIMEBOUND) noexcept;
+
+    void Flush(bool reallocate_cache = true) override;
+    void Sync() override;
+    void SetBackend(CCoinsView& view_in) override;
+
+    explicit CoinsViewOverlay(CCoinsView* base_in, bool deterministic = false,
+        std::shared_ptr<ThreadPool> thread_pool = nullptr) noexcept;
+    ~CoinsViewOverlay() override;
 };
 
 //! Utility function to add all of a transaction's outputs to a cache.

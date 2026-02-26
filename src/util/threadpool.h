@@ -16,6 +16,7 @@
 #include <functional>
 #include <future>
 #include <queue>
+#include <ranges>
 #include <thread>
 #include <type_traits>
 #include <utility>
@@ -149,6 +150,12 @@ public:
         Interrupted,
     };
 
+    template <class F>
+    using Future = std::future<std::invoke_result_t<F>>;
+
+    template <class R>
+    using RangeValueFuture = Future<std::ranges::range_value_t<R>>;
+
     /**
      * @brief Enqueues a new task for asynchronous execution.
      *
@@ -164,7 +171,7 @@ public:
      *          uncaught exceptions, as they would otherwise be silently discarded.
      */
     template <class F>
-    [[nodiscard]] util::Expected<std::future<std::invoke_result_t<F>>, SubmitError> Submit(F&& fn) noexcept EXCLUSIVE_LOCKS_REQUIRED(!m_mutex)
+    [[nodiscard]] util::Expected<Future<F>, SubmitError> Submit(F&& fn) noexcept EXCLUSIVE_LOCKS_REQUIRED(!m_mutex)
     {
         std::packaged_task<std::invoke_result_t<F>()> task{std::forward<F>(fn)};
         auto future{task.get_future()};
@@ -177,6 +184,47 @@ public:
         }
         m_cv.notify_one();
         return {std::move(future)};
+    }
+
+    /**
+     * @brief Enqueues a range of tasks for asynchronous execution.
+     *
+     * @param  fns Callables to execute asynchronously.
+     * @return On success, a vector of futures containing each element of fns's result in order.
+     *         On failure, an error indicating why the range was rejected:
+     *         - SubmitError::Inactive: Pool has no workers (never started or already stopped).
+     *         - SubmitError::Interrupted: Pool task acceptance has been interrupted.
+     *
+     * This is more efficient when submitting many tasks at once, since
+     * the queue lock is only taken once internally and all worker threads are
+     * notified. For single tasks, Submit() is preferred since only one worker
+     * thread is notified.
+     *
+     * Thread-safe: Can be called from any thread, including within submitted
+     * callables.
+     *
+     * @warning Ignoring the returned futures requires guarding tasks against
+     *          uncaught exceptions, as they would otherwise be silently discarded.
+     */
+    template <std::ranges::sized_range R>
+    requires (!std::is_lvalue_reference_v<R>)
+    [[nodiscard]] util::Expected<std::vector<RangeValueFuture<R>>, SubmitError> Submit(R&& fns) noexcept EXCLUSIVE_LOCKS_REQUIRED(!m_mutex)
+    {
+        std::vector<RangeValueFuture<R>> futures;
+        futures.reserve(std::ranges::size(fns));
+
+        {
+            LOCK(m_mutex);
+            if (m_workers.empty()) return util::Unexpected{SubmitError::Inactive};
+            if (m_interrupt) return util::Unexpected{SubmitError::Interrupted};
+            for (auto& fn : fns) {
+                std::packaged_task task{std::move(fn)};
+                futures.emplace_back(task.get_future());
+                m_work_queue.emplace(std::move(task));
+            }
+        }
+        m_cv.notify_all();
+        return {std::move(futures)};
     }
 
     /**
