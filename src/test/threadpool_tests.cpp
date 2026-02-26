@@ -10,6 +10,9 @@
 #include <util/time.h>
 
 #include <boost/test/unit_test.hpp>
+#include <array>
+#include <functional>
+#include <ranges>
 
 // General test values
 int NUM_WORKERS_DEFAULT = 0;
@@ -34,7 +37,8 @@ struct ThreadPoolFixture {
 // 7) Recursive submission of tasks.
 // 8) Submit task when all threads are busy, stop pool and verify task gets executed.
 // 9) Congestion test; create more workers than available cores.
-// 10) Ensure Interrupt() prevents further submissions.
+// 10) Submit range of tasks in one lock acquisition.
+// 11) Ensure Interrupt() prevents further submissions.
 BOOST_FIXTURE_TEST_SUITE(threadpool_tests, ThreadPoolFixture)
 
 #define WAIT_FOR(futures)                                                         \
@@ -83,6 +87,11 @@ BOOST_AUTO_TEST_CASE(submit_task_before_start_fails)
     auto res = threadPool.Submit([]{ return false; });
     BOOST_CHECK(!res);
     BOOST_CHECK_EQUAL(SubmitErrorString(res.error()), "No active workers");
+
+    std::vector<std::function<void()>> tasks;
+    const auto range_res{threadPool.Submit(std::move(tasks))};
+    BOOST_CHECK(!range_res);
+    BOOST_CHECK_EQUAL(SubmitErrorString(range_res.error()), "No active workers");
 }
 
 // Test 1, submit tasks and verify completion
@@ -107,6 +116,42 @@ BOOST_AUTO_TEST_CASE(submit_tasks_complete_successfully)
     WAIT_FOR(futures);
     int expected_value = (num_tasks * (num_tasks + 1)) / 2; // Gauss sum.
     BOOST_CHECK_EQUAL(counter.load(), expected_value);
+    BOOST_CHECK_EQUAL(threadPool.WorkQueueSize(), 0);
+}
+
+// Test 10, submit range of tasks in one lock acquisition
+BOOST_AUTO_TEST_CASE(submit_range_of_tasks_complete_successfully)
+{
+    constexpr int32_t num_tasks{50};
+
+    ThreadPool threadPool{POOL_NAME};
+    threadPool.Start(NUM_WORKERS_DEFAULT);
+    std::atomic_int32_t counter{0};
+    const auto square{[&counter](int32_t i) {
+        counter.fetch_add(i, std::memory_order_relaxed);
+        return i * i;
+    }};
+
+    std::array<std::function<int32_t()>, static_cast<size_t>(num_tasks)> array_tasks;
+    std::vector<std::function<int32_t()>> vector_tasks;
+    vector_tasks.reserve(static_cast<size_t>(num_tasks));
+    for (const auto i : std::views::iota(int32_t{1}, num_tasks + 1)) {
+        array_tasks.at(static_cast<size_t>(i - 1)) = [i, square] { return square(i); };
+        vector_tasks.emplace_back([i, square] { return square(i); });
+    }
+
+    auto futures{std::move(*Assert(threadPool.Submit(std::move(array_tasks))))};
+    BOOST_CHECK_EQUAL(futures.size(), static_cast<size_t>(num_tasks));
+    std::ranges::move(*Assert(threadPool.Submit(std::move(vector_tasks))), std::back_inserter(futures));
+    BOOST_CHECK_EQUAL(futures.size(), static_cast<size_t>(num_tasks * 2));
+
+    auto squares_sum{0};
+    for (auto& future : futures) squares_sum += future.get();
+
+    const auto expected_sum{((num_tasks * 2) * (num_tasks + 1)) / 2}; // 2x Gauss sum.
+    const auto expected_squares_sum{((num_tasks * 2) * (num_tasks + 1) * ((num_tasks * 2) + 1)) / 6};
+    BOOST_CHECK_EQUAL(counter, expected_sum);
+    BOOST_CHECK_EQUAL(squares_sum, expected_squares_sum);
     BOOST_CHECK_EQUAL(threadPool.WorkQueueSize(), 0);
 }
 
@@ -295,7 +340,7 @@ BOOST_AUTO_TEST_CASE(congestion_more_workers_than_cores)
     BOOST_CHECK_EQUAL(counter.load(), num_tasks);
 }
 
-// Test 10, Interrupt() prevents further submissions
+// Test 11, Interrupt() prevents further submissions
 BOOST_AUTO_TEST_CASE(interrupt_blocks_new_submissions)
 {
     // 1) Interrupt from main thread
@@ -306,6 +351,11 @@ BOOST_AUTO_TEST_CASE(interrupt_blocks_new_submissions)
     auto res = threadPool.Submit([]{});
     BOOST_CHECK(!res);
     BOOST_CHECK_EQUAL(SubmitErrorString(res.error()), "Interrupted");
+
+    std::vector<std::function<void()>> tasks;
+    const auto range_res{threadPool.Submit(std::move(tasks))};
+    BOOST_CHECK(!range_res);
+    BOOST_CHECK_EQUAL(SubmitErrorString(range_res.error()), "Interrupted");
 
     // Reset pool
     threadPool.Stop();
