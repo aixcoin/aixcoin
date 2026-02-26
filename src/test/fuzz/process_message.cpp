@@ -18,6 +18,7 @@
 #include <test/util/mining.h>
 #include <test/util/net.h>
 #include <test/util/setup_common.h>
+#include <test/util/time.h>
 #include <test/util/validation.h>
 #include <util/check.h>
 #include <util/time.h>
@@ -33,6 +34,8 @@
 namespace {
 TestingSetup* g_setup;
 std::string_view LIMIT_TO_MESSAGE_TYPE{};
+// Initialize mock steady clock for deterministic fuzzing
+[[maybe_unused]] SteadyClockContext steady_clock{};
 
 void ResetChainman(TestingSetup& setup)
 {

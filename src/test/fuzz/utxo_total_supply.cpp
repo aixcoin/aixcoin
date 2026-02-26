@@ -14,6 +14,7 @@
 #include <test/fuzz/util.h>
 #include <test/util/mining.h>
 #include <test/util/setup_common.h>
+#include <test/util/time.h>
 #include <util/chaintype.h>
 #include <util/time.h>
 #include <validation.h>
@@ -25,6 +26,8 @@ FUZZ_TARGET(utxo_total_supply)
     SeedRandomStateForTest(SeedRand::ZEROS);
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
     SetMockTime(ConsumeTime(fuzzed_data_provider, /*min=*/1296688602)); // regtest genesis block timestamp
+    // Initialize mock steady clock for deterministic fuzzing
+    [[maybe_unused]] SteadyClockContext steady_clock{};
     /** The testing setup that creates a chainman only (no chainstate) */
     ChainTestingSetup test_setup{
         ChainType::REGTEST,

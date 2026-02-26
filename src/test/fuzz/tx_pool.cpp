@@ -15,6 +15,7 @@
 #include <test/util/script.h>
 #include <test/util/setup_common.h>
 #include <test/util/txmempool.h>
+#include <test/util/time.h>
 #include <util/check.h>
 #include <util/rbf.h>
 #include <util/translation.h>
@@ -30,6 +31,8 @@ namespace {
 const TestingSetup* g_setup;
 std::vector<COutPoint> g_outpoints_coinbase_init_mature;
 std::vector<COutPoint> g_outpoints_coinbase_init_immature;
+// Initialize mock steady clock for deterministic fuzzing
+[[maybe_unused]] SteadyClockContext steady_clock{};
 
 struct MockedTxPool : public CTxMemPool {
     void RollingFeeUpdate() EXCLUSIVE_LOCKS_REQUIRED(!cs)
@@ -45,7 +48,6 @@ void initialize_tx_pool()
     static const auto testing_setup = MakeNoLogFileContext<const TestingSetup>();
     g_setup = testing_setup.get();
     SetMockTime(WITH_LOCK(g_setup->m_node.chainman->GetMutex(), return g_setup->m_node.chainman->ActiveTip()->Time()));
-
     BlockAssembler::Options options;
     options.coinbase_output_script = P2WSH_OP_TRUE;
     options.include_dummy_extranonce = true;
