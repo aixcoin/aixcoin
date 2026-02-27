@@ -75,11 +75,44 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND NOT CMAKE_HOST_APPLE)
   set(CMAKE_PLATFORM_HAS_INSTALLNAME FALSE)
 endif()
 enable_language(CXX)
+set(MIN_CLANG_VERSION 17.0)
+set(MIN_GCC_VERSION 12.1)
+# VS 18.x uses 19.50-19.59 as MSVC version values
+# https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
+set(MIN_MSVC_VERSION 19.50)
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS MIN_CLANG_VERSION)
+    message(FATAL_ERROR "Clang >= ${MIN_CLANG_VERSION} required.")
+  endif()
+endif()
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS MIN_GCC_VERSION)
+    message(FATAL_ERROR "GCC >= ${MIN_GCC_VERSION} required.")
+  endif()
+endif()
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS MIN_MSVC_VERSION)
+    message(FATAL_ERROR "MSVC >= ${MIN_MSVC_VERSION} required.")
+  endif()
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/module)
+
+#=============================
+# C++ Feature Detection
+#=============================
+# In case the compiler is not GCC, Clang or MSVC this provides extra checks
+# that verifies that some features are available in the standard library.
+include(CheckCXXFeatures)
+check_cxx_features()
+
 include(ProcessConfigurations)
 
 # Flatten static lib dependencies.
