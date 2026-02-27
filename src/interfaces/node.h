@@ -123,7 +123,7 @@ public:
     virtual void mapPort(bool enable) = 0;
 
     //! Get proxy.
-    virtual bool getProxy(Network net, Proxy& proxy_info) = 0;
+    [[nodiscard]] virtual bool getProxy(Network net, Proxy& proxy_info) = 0;
 
     //! Get number of connections.
     virtual size_t getNodeCount(ConnectionDirection flags) = 0;
@@ -166,7 +166,7 @@ public:
     virtual size_t getMempoolMaxUsage() = 0;
 
     //! Get header tip height and time.
-    virtual bool getHeaderTip(int& height, int64_t& block_time) = 0;
+    [[nodiscard]] virtual bool getHeaderTip(int& height, int64_t& block_time) = 0;
 
     //! Get num blocks.
     virtual int getNumBlocks() = 0;
