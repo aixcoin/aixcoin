@@ -31,6 +31,10 @@ BOOST_FIXTURE_TEST_CASE(txindex_initial_sync, TestChain100Setup)
 
     txindex.Sync();
 
+    // BlockUntilSyncedToCurrentChain should return true after Sync() completes,
+    // since all historical blocks have been indexed.
+    BOOST_CHECK(txindex.BlockUntilSyncedToCurrentChain());
+
     // Check that txindex excludes genesis block transactions.
     const CBlock& genesis_block = Params().GenesisBlock();
     for (const auto& txn : genesis_block.vtx) {
@@ -53,6 +57,7 @@ BOOST_FIXTURE_TEST_CASE(txindex_initial_sync, TestChain100Setup)
         const CBlock& block = CreateAndProcessBlock(no_txns, coinbase_script_pub_key);
         const CTransaction& txn = *block.vtx[0];
 
+        // New blocks are indexed via BlockConnected callback.
         BOOST_CHECK(txindex.BlockUntilSyncedToCurrentChain());
         if (!txindex.FindTx(txn.GetHash(), block_hash, tx_disk)) {
             BOOST_ERROR("FindTx failed");

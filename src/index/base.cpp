@@ -155,9 +155,13 @@ static const CBlockIndex* NextSyncBlock(const CBlockIndex* pindex_prev, CChain& 
         return chain.Genesis();
     }
 
-    const CBlockIndex* pindex = chain.Next(pindex_prev);
-    if (pindex) {
+    if (const auto* pindex{chain.Next(pindex_prev)}) {
         return pindex;
+    }
+
+    // if at the tip, there is no next
+    if (pindex_prev == chain.Tip()) {
+        return nullptr;
     }
 
     // Since block is not in the chain, return the next block in the chain AFTER the last common ancestor.
