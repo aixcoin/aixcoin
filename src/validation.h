@@ -8,6 +8,7 @@
 
 #include <arith_uint256.h>
 #include <attributes.h>
+#include <blockmap.h>
 #include <chain.h>
 #include <checkqueue.h>
 #include <coins.h>
@@ -1158,9 +1159,9 @@ public:
     //! should use CurrentChainstate() instead.
     //! @{
     Chainstate& ActiveChainstate() const;
-    CChain& ActiveChain() const EXCLUSIVE_LOCKS_REQUIRED(GetMutex()) { return ActiveChainstate().m_chain; }
-    int ActiveHeight() const EXCLUSIVE_LOCKS_REQUIRED(GetMutex()) { return ActiveChain().Height(); }
-    CBlockIndex* ActiveTip() const EXCLUSIVE_LOCKS_REQUIRED(GetMutex()) { return ActiveChain().Tip(); }
+    CChain& ActiveChain() const { return ActiveChainstate().m_chain; }
+    int ActiveHeight() const { return ActiveChain().Height(); }
+    CBlockIndex* ActiveTip() const { return ActiveChain().Tip(); }
     //! @}
 
     /**
@@ -1176,10 +1177,15 @@ public:
      */
     void UpdateIBDStatus() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
-    node::BlockMap& BlockIndex() EXCLUSIVE_LOCKS_REQUIRED(::cs_main)
+    BlockMap& BlockIndex() EXCLUSIVE_LOCKS_REQUIRED(::cs_main)
     {
         AssertLockHeld(::cs_main);
         return m_blockman.m_block_index;
+    }
+
+    BlockMap BlockIndexSnapshot()
+    {
+        return m_blockman.GetBlockIndexSnapshot();
     }
 
     /**

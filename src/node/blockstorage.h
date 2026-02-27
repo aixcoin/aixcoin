@@ -6,6 +6,7 @@
 #define BITCOIN_NODE_BLOCKSTORAGE_H
 
 #include <attributes.h>
+#include <blockmap.h>
 #include <chain.h>
 #include <dbwrapper.h>
 #include <flatfile.h>
@@ -20,7 +21,6 @@
 #include <uint256.h>
 #include <util/expected.h>
 #include <util/fs.h>
-#include <util/hasher.h>
 #include <util/obfuscation.h>
 
 #include <algorithm>
@@ -127,12 +127,6 @@ static constexpr uint32_t STORAGE_HEADER_BYTES{std::tuple_size_v<MessageStartCha
 
 /** Total overhead when writing undo data: header (8 bytes) plus checksum (32 bytes) */
 static constexpr uint32_t UNDO_DATA_DISK_OVERHEAD{STORAGE_HEADER_BYTES + uint256::size()};
-
-// Because validation code takes pointers to the map's CBlockIndex objects, if
-// we ever switch to another associative container, we need to either use a
-// container that has stable addressing (true of all std associative
-// containers), or make the key a `std::unique_ptr<CBlockIndex>`
-using BlockMap = std::unordered_map<uint256, CBlockIndex, BlockHasher>;
 
 struct CBlockIndexWorkComparator {
     bool operator()(const CBlockIndex* pa, const CBlockIndex* pb) const;
@@ -303,6 +297,8 @@ private:
     const FlatFileSeq m_block_file_seq;
     const FlatFileSeq m_undo_file_seq;
 
+    mutable Mutex m_block_index_mutex;
+
 protected:
     std::vector<CBlockFileInfo> m_blockfile_info;
 
@@ -329,7 +325,7 @@ public:
      */
     std::atomic_bool m_blockfiles_indexed{true};
 
-    BlockMap m_block_index GUARDED_BY(cs_main);
+    BlockMap m_block_index;
 
     /**
      * The height of the base block of an assumeutxo snapshot, if one is in use.
@@ -345,7 +341,7 @@ public:
      */
     std::optional<int> m_snapshot_height;
 
-    std::vector<CBlockIndex*> GetAllBlockIndices() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+    std::vector<CBlockIndex*> GetAllBlockIndices();
 
     /**
      * All pairs A->B, where A (or one of its ancestors) misses transactions, but B has transactions.
@@ -366,15 +362,15 @@ public:
      */
     void ScanAndUnlinkAlreadyPrunedFiles() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
-    CBlockIndex* AddToBlockIndex(const CBlockHeader& block, CBlockIndex*& best_header) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    CBlockIndex* AddToBlockIndex(const CBlockHeader& block, CBlockIndex*& best_header) EXCLUSIVE_LOCKS_REQUIRED(!m_block_index_mutex);
     /** Create a new block index entry for a given block hash */
-    CBlockIndex* InsertBlockIndex(const uint256& hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    CBlockIndex* InsertBlockIndex(const uint256& hash) EXCLUSIVE_LOCKS_REQUIRED(!m_block_index_mutex);
 
     //! Mark one block file as pruned (modify associated database entries)
     void PruneOneBlockFile(int fileNumber) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
-    CBlockIndex* LookupBlockIndex(const uint256& hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    const CBlockIndex* LookupBlockIndex(const uint256& hash) const EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    CBlockIndex* LookupBlockIndex(const uint256& hash);
+    const CBlockIndex* LookupBlockIndex(const uint256& hash) const;
 
     /** Get block file info entry for one block file */
     CBlockFileInfo* GetBlockFileInfo(size_t n);
@@ -474,6 +470,12 @@ public:
     bool ReadBlockUndo(CBlockUndo& blockundo, const CBlockIndex& index) const;
 
     void CleanupBlockRevFiles() const;
+
+    BlockMap GetBlockIndexSnapshot() const NO_THREAD_SAFETY_ANALYSIS // TODO: remove NO_THREAD_SAFETY_ANALYSIS (temporary hack)
+    {
+        LOCK(m_block_index_mutex);
+        return m_block_index;
+    }
 };
 
 // Calls ActivateBestChain() even if no blocks are imported.
