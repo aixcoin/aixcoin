@@ -521,6 +521,39 @@ inspecting signatures in Mach-O binaries.")
                    (("^install-others =.*$")
                     (string-append "install-others = " out "/etc/rpc\n")))))))))))))
 
+;; --enable-static-nss isn't used yet, because it has been broken
+;; since 2.33: https://sourceware.org/bugzilla/show_bug.cgi?id=27959.
+(define-public glibc-2.43
+  (let ((commit "48f5a05a7a1eeb9e0567ab429f654648f831307f"))
+  (package
+    (inherit glibc) ;; 2.39
+    (version "2.43")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://sourceware.org/git/glibc.git")
+                    (commit commit)))
+              (file-name (git-file-name "glibc" commit))
+              (sha256
+               (base32
+                "19ldxfn091vzk25v3vadyr0xiqxzb4v7wp3zyqfn0jfx6pwm12fc"))
+              (patches (search-our-patches "glibc-guix-2.43-prefix.patch"))))
+    (arguments
+      (substitute-keyword-arguments (package-arguments glibc)
+        ((#:configure-flags flags)
+          `(append ,flags
+            ;; https://www.gnu.org/software/libc/manual/html_node/Configuring-and-compiling.html
+            (list "--enable-bind-now",
+                  "--enable-cet=yes",
+                  "--enable-fortify-source",
+                  "--enable-stack-protector=all",
+                  "--disable-nscd",
+                  "--disable-profile",
+                  "--disable-pt_chown",
+                  "--disable-timezone-tools",
+                  "--disable-werror",
+                  building-on))))))))
+
 (packages->manifest
  (append
   (list ;; The Basics
@@ -557,6 +590,12 @@ inspecting signatures in Mach-O binaries.")
                  nsis-x86_64
                  nss-certs
                  osslsigncode))
+          ((or (string-contains target "x86_64-linux-")
+               (string-contains target "aarch64-linux-")
+               (string-contains target "riscv64-linux-"))
+           (list (list gcc-toolchain-14 "static")
+                 (make-bitcoin-cross-toolchain target
+                                               #:base-libc glibc-2.43)))
           ((string-contains target "-linux-")
            (list bison
                  pkg-config
