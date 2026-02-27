@@ -1473,6 +1473,9 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
         }
     }, std::chrono::minutes{5});
 
+    // Warn on high swap usage.
+    scheduler.scheduleEvery([] { MaybeWarnIfSystemSwapping(); }, 30min);
+
     if (args.GetBoolArg("-logratelimit", BCLog::DEFAULT_LOGRATELIMIT)) {
         LogInstance().SetRateLimiting(BCLog::LogRateLimiter::Create(
             [&scheduler](auto func, auto window) { scheduler.scheduleEvery(std::move(func), window); },
