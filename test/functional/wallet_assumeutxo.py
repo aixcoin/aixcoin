@@ -242,6 +242,7 @@ class AssumeutxoTest(BitcoinTestFramework):
         self.log.info(
             "Restarted node before snapshot validation completed, reloading...")
         self.restart_node(1, extra_args=self.extra_args[1])
+        self.wait_until(lambda: not self.nodes[0].is_connected_to(self.nodes[1]))
 
         self.log.info("Verify node state after restart during background sync")
         # Verify there are still two chainstates (background validation not complete)
