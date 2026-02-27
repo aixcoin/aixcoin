@@ -13,6 +13,7 @@
 #include <core_io.h>
 #include <index/txospenderindex.h>
 #include <kernel/mempool_entry.h>
+#include <logging.h>
 #include <net_processing.h>
 #include <netbase.h>
 #include <node/mempool_persist_args.h>
@@ -23,6 +24,7 @@
 #include <rpc/server.h>
 #include <rpc/server_util.h>
 #include <rpc/util.h>
+#include <tinyformat.h>
 #include <txmempool.h>
 #include <univalue.h>
 #include <util/fs.h>
@@ -1142,7 +1144,7 @@ static RPCHelpMan importmempool()
             };
 
             if (!node::LoadMempool(mempool, load_path, chainstate, std::move(opts))) {
-                throw JSONRPCError(RPC_MISC_ERROR, "Unable to import mempool file, see debug.log for details.");
+                throw JSONRPCError(RPC_MISC_ERROR, strprintf("Unable to import mempool file, see %s for details.", fs::PathToString(LogInstance().m_file_path)));
             }
 
             UniValue ret{UniValue::VOBJ};
