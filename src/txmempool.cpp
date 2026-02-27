@@ -458,7 +458,7 @@ void CTxMemPool::check(const CCoinsViewCache& active_coins_tip, int64_t spendhei
     assert(diagram.size() <= score_with_topo.size() + 1);
     assert(diagram.size() >= 1);
 
-    std::optional<Wtxid> last_wtxid = std::nullopt;
+    std::optional<txiter> last_iter = std::nullopt;
     auto diagram_iter = diagram.cbegin();
 
     for (const auto& it : score_with_topo) {
@@ -481,10 +481,10 @@ void CTxMemPool::check(const CCoinsViewCache& active_coins_tip, int64_t spendhei
         const CTransaction& tx = it->GetTx();
 
         // CompareMiningScoreWithTopology should agree with GetSortedScoreWithTopology()
-        if (last_wtxid) {
-            assert(CompareMiningScoreWithTopology(*last_wtxid, tx.GetWitnessHash()));
+        if (last_iter) {
+            assert(m_txgraph->CompareMainOrder(**last_iter, *it) < 0);
         }
-        last_wtxid = tx.GetWitnessHash();
+        last_iter = it;
 
         std::set<CTxMemPoolEntry::CTxMemPoolEntryRef, CompareIteratorByHash> setParentCheck;
         std::set<CTxMemPoolEntry::CTxMemPoolEntryRef, CompareIteratorByHash> setParentsStored;
@@ -538,6 +538,55 @@ void CTxMemPool::check(const CCoinsViewCache& active_coins_tip, int64_t spendhei
         for (const auto& input: tx.vin) mempoolDuplicate.SpendCoin(input.prevout);
         AddCoins(mempoolDuplicate, tx, std::numeric_limits<int>::max());
     }
+
+    // Test SortMiningScoreWithTopology: pick random wtxids (with possible
+    // duplicates), add a dummy, shuffle, partial-sort, and verify.
+    if (!score_with_topo.empty()) {
+        const size_t SAMPLE = std::min<size_t>(50, score_with_topo.size());
+        const size_t TOP_N = std::min<size_t>(20, SAMPLE);
+
+        FastRandomContext rng{/*fDeterministic=*/true};
+
+        std::vector<Wtxid> test_wtxids;
+        test_wtxids.reserve(SAMPLE + 1);
+
+        // Add a dummy wtxid not in the mempool
+        test_wtxids.push_back(Wtxid::FromUint256(uint256::ONE));
+        assert(!GetIter(test_wtxids.back()).has_value());
+
+        // Sample txs randomly, possibly with duplicates
+        for (size_t i = 0; i < SAMPLE; ++i) {
+            test_wtxids.push_back(score_with_topo[rng.randrange(score_with_topo.size())]->GetTx().GetWitnessHash());
+        }
+
+        // Shuffle the selection
+        std::shuffle(test_wtxids.begin(), test_wtxids.end(), rng);
+
+        // Partially sort the selection
+        auto result = SortMiningScoreWithTopology(test_wtxids, TOP_N);
+
+        // Dummy should have been silently dropped but duplicates are preserved
+        assert(result.size() == SAMPLE);
+
+        // Walk backward through the result. The last TOP_N entries should be
+        // sorted (highest priority at the end). Entries before that should
+        // each have priority <= the boundary. CompareMainOrder should only
+        // return equality for identical txiters (duplicates from the input).
+        txiter higher{result.back()};
+        size_t remaining = TOP_N - 1;
+        size_t i = result.size() - 1;
+        while (i > 0) {
+            --i;
+            auto cmp = m_txgraph->CompareMainOrder(*result[i], *higher);
+            assert(cmp >= 0);
+            if (cmp == 0) assert(result[i] == higher);
+            if (remaining > 0) {
+                higher = result[i];
+                --remaining;
+            }
+        }
+    }
+
     for (auto it = mapNextTx.cbegin(); it != mapNextTx.cend(); it++) {
         indexed_transaction_set::const_iterator it2 = it->second;
         assert(it2 != mapTx.end());
@@ -553,20 +602,25 @@ void CTxMemPool::check(const CCoinsViewCache& active_coins_tip, int64_t spendhei
     assert(innerUsage == cachedInnerUsage);
 }
 
-bool CTxMemPool::CompareMiningScoreWithTopology(const Wtxid& hasha, const Wtxid& hashb) const
+std::vector<CTxMemPool::txiter> CTxMemPool::SortMiningScoreWithTopology(std::span<const Wtxid> wtxids, size_t n) const
 {
-    /* Return `true` if hasha should be considered sooner than hashb, namely when:
-     *     a is not in the mempool but b is, or
-     *     both are in the mempool but a is sorted before b in the total mempool ordering
-     *     (which takes dependencies and (chunk) feerates into account).
-     */
-    LOCK(cs);
-    auto j{GetIter(hashb)};
-    if (!j.has_value()) return false;
-    auto i{GetIter(hasha)};
-    if (!i.has_value()) return true;
+    auto cmp = [&](const auto& a, const auto& b) EXCLUSIVE_LOCKS_REQUIRED(cs) noexcept { return m_txgraph->CompareMainOrder(*a, *b) < 0; };
 
-    return m_txgraph->CompareMainOrder(*i.value(), *j.value()) < 0;
+    std::vector<txiter> res;
+
+    n = std::min(wtxids.size(), n);
+    if (n > 0) {
+        res.reserve(wtxids.size());
+        for (auto& wtxid : wtxids) {
+            if (auto i{GetIter(wtxid)}; i.has_value()) {
+                res.push_back(i.value());
+            }
+        }
+
+        n = std::min(res.size(), n);
+        std::partial_sort(res.rbegin(), res.rbegin() + n, res.rend(), cmp);
+    }
+    return res;
 }
 
 std::vector<CTxMemPool::indexed_transaction_set::const_iterator> CTxMemPool::GetSortedScoreWithTopology() const
