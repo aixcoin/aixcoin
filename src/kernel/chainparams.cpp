@@ -135,7 +135,7 @@ public:
         vSeeds.emplace_back("dnsseed.aixcoin.dashjr.org."); // Luke Dashjr
         vSeeds.emplace_back("seed.aixcoinstats.com."); // Christian Decker, supports x1 - xf
         vSeeds.emplace_back("seed.aixcoin.jonasschnelli.ch."); // Jonas Schnelli, only supports x1, x5, x9, and xd
-        vSeeds.emplace_back("seed.btc.petertodd.org."); // Peter Todd, only supports x1, x5, x9, and xd
+        vSeeds.emplace_back("seed.aix.petertodd.org."); // Peter Todd, only supports x1, x5, x9, and xd
         vSeeds.emplace_back("seed.aixcoin.sprovoost.nl."); // Sjors Provoost
         vSeeds.emplace_back("dnsseed.emzy.de."); // Stephan Oeste
         vSeeds.emplace_back("seed.aixcoin.wiz.biz."); // Jason Maurice
@@ -244,7 +244,7 @@ public:
         vSeeds.clear();
         // nodes with support for servicebits filtering should be at the top
         vSeeds.emplace_back("testnet-seed.aixcoin.jonasschnelli.ch.");
-        vSeeds.emplace_back("seed.tbtc.petertodd.org.");
+        vSeeds.emplace_back("seed.taix.petertodd.org.");
         vSeeds.emplace_back("seed.testnet.aixcoin.sprovoost.nl.");
         vSeeds.emplace_back("testnet-seed.bluematt.me."); // Just a static list of stable node(s), only supports x9
 

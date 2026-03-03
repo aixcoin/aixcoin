@@ -160,13 +160,13 @@ bool OptionsModel::Init(bilingual_str& error)
 
     // Display
     if (!settings.contains("DisplayAixcoinUnit")) {
-        settings.setValue("DisplayAixcoinUnit", QVariant::fromValue(AixcoinUnit::BTC));
+        settings.setValue("DisplayAixcoinUnit", QVariant::fromValue(AixcoinUnit::AIX));
     }
     QVariant unit = settings.value("DisplayAixcoinUnit");
     if (unit.canConvert<AixcoinUnit>()) {
         m_display_aixcoin_unit = unit.value<AixcoinUnit>();
     } else {
-        m_display_aixcoin_unit = AixcoinUnit::BTC;
+        m_display_aixcoin_unit = AixcoinUnit::AIX;
         settings.setValue("DisplayAixcoinUnit", QVariant::fromValue(m_display_aixcoin_unit));
     }
 
@@ -431,7 +431,7 @@ QVariant OptionsModel::getOption(OptionID option, const std::string& suffix) con
         return m_use_embedded_monospaced_font;
     case CoinControlFeatures:
         return fCoinControlFeatures;
-    case EnablePSBTControls:
+    case EnablePSAIXontrols:
         return settings.value("enable_psbt_controls");
     case Prune:
         return PruneEnabled(setting());
@@ -596,7 +596,7 @@ bool OptionsModel::setOption(OptionID option, const QVariant& value, const std::
         settings.setValue("fCoinControlFeatures", fCoinControlFeatures);
         Q_EMIT coinControlFeaturesChanged(fCoinControlFeatures);
         break;
-    case EnablePSBTControls:
+    case EnablePSAIXontrols:
         m_enable_psbt_controls = value.toBool();
         settings.setValue("enable_psbt_controls", m_enable_psbt_controls);
         break;
