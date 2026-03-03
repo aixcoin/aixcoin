@@ -149,8 +149,8 @@ Signing is only possible with addresses of the type 'legacy'.</source>
         <translation type="unfinished">Xaqiiji encryption jeebka</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR BITCOINS&lt;/b&gt;!</source>
-        <translation type="unfinished">Digniin: Haddii aad qarisid jeebkaaga oo aad lumiso ereyga Passphrase, waxaad 1LOSE DOONAA DHAMMAAN BITCOINS1!</translation>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR AIXCOINS&lt;/b&gt;!</source>
+        <translation type="unfinished">Digniin: Haddii aad qarisid jeebkaaga oo aad lumiso ereyga Passphrase, waxaad 1LOSE DOONAA DHAMMAAN AIXCOINS1!</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>

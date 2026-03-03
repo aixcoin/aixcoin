@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_NETBASE_H
-#define BITCOIN_NETBASE_H
+#ifndef AIXCOIN_NETBASE_H
+#define AIXCOIN_NETBASE_H
 
 #if defined(HAVE_CONFIG_H)
 #include <config/aixcoin-config.h>
@@ -252,4 +252,4 @@ bool Socks5(const std::string& strDest, uint16_t port, const ProxyCredentials* a
  */
 bool IsBadPort(uint16_t port);
 
-#endif // BITCOIN_NETBASE_H
+#endif // AIXCOIN_NETBASE_H

@@ -3,8 +3,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_WALLET_WALLET_H
-#define BITCOIN_WALLET_WALLET_H
+#ifndef AIXCOIN_WALLET_WALLET_H
+#define AIXCOIN_WALLET_WALLET_H
 
 #include <consensus/amount.h>
 #include <interfaces/chain.h>
@@ -1051,4 +1051,4 @@ struct MigrationResult {
 util::Result<MigrationResult> MigrateLegacyToDescriptor(const std::string& wallet_name, const SecureString& passphrase, WalletContext& context);
 } // namespace wallet
 
-#endif // BITCOIN_WALLET_WALLET_H
+#endif // AIXCOIN_WALLET_WALLET_H

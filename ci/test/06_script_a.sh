@@ -6,12 +6,12 @@
 
 export LC_ALL=C.UTF-8
 
-BITCOIN_CONFIG_ALL="--enable-suppress-external-warnings --disable-dependency-tracking"
+AIXCOIN_CONFIG_ALL="--enable-suppress-external-warnings --disable-dependency-tracking"
 if [ -z "$NO_DEPENDS" ]; then
-  BITCOIN_CONFIG_ALL="${BITCOIN_CONFIG_ALL} CONFIG_SITE=$DEPENDS_DIR/$HOST/share/config.site"
+  AIXCOIN_CONFIG_ALL="${AIXCOIN_CONFIG_ALL} CONFIG_SITE=$DEPENDS_DIR/$HOST/share/config.site"
 fi
 if [ -z "$NO_WERROR" ]; then
-  BITCOIN_CONFIG_ALL="${BITCOIN_CONFIG_ALL} --enable-werror"
+  AIXCOIN_CONFIG_ALL="${AIXCOIN_CONFIG_ALL} --enable-werror"
 fi
 
 CI_EXEC "ccache --zero-stats --max-size=$CCACHE_SIZE"
@@ -20,13 +20,13 @@ PRINT_CCACHE_STATISTICS="ccache --version | head -n 1 && ccache --show-stats"
 if [ -n "$ANDROID_TOOLS_URL" ]; then
   CI_EXEC make distclean || true
   CI_EXEC ./autogen.sh
-  CI_EXEC ./configure "$BITCOIN_CONFIG_ALL" "$BITCOIN_CONFIG" || ( (CI_EXEC cat config.log) && false)
+  CI_EXEC ./configure "$AIXCOIN_CONFIG_ALL" "$AIXCOIN_CONFIG" || ( (CI_EXEC cat config.log) && false)
   CI_EXEC "make $MAKEJOBS && cd src/qt && ANDROID_HOME=${ANDROID_HOME} ANDROID_NDK_HOME=${ANDROID_NDK_HOME} make apk"
   CI_EXEC "${PRINT_CCACHE_STATISTICS}"
   exit 0
 fi
 
-BITCOIN_CONFIG_ALL="${BITCOIN_CONFIG_ALL} --enable-external-signer --prefix=$BASE_OUTDIR"
+AIXCOIN_CONFIG_ALL="${AIXCOIN_CONFIG_ALL} --enable-external-signer --prefix=$BASE_OUTDIR"
 
 if [ -n "$CONFIG_SHELL" ]; then
   CI_EXEC "$CONFIG_SHELL" -c "./autogen.sh"
@@ -37,13 +37,13 @@ fi
 CI_EXEC mkdir -p "${BASE_BUILD_DIR}"
 export P_CI_DIR="${BASE_BUILD_DIR}"
 
-CI_EXEC "${BASE_ROOT_DIR}/configure" --cache-file=config.cache "$BITCOIN_CONFIG_ALL" "$BITCOIN_CONFIG" || ( (CI_EXEC cat config.log) && false)
+CI_EXEC "${BASE_ROOT_DIR}/configure" --cache-file=config.cache "$AIXCOIN_CONFIG_ALL" "$AIXCOIN_CONFIG" || ( (CI_EXEC cat config.log) && false)
 
 CI_EXEC make distdir VERSION="$HOST"
 
 export P_CI_DIR="${BASE_BUILD_DIR}/aixcoin-$HOST"
 
-CI_EXEC ./configure --cache-file=../config.cache "$BITCOIN_CONFIG_ALL" "$BITCOIN_CONFIG" || ( (CI_EXEC cat config.log) && false)
+CI_EXEC ./configure --cache-file=../config.cache "$AIXCOIN_CONFIG_ALL" "$AIXCOIN_CONFIG" || ( (CI_EXEC cat config.log) && false)
 
 set -o errtrace
 trap 'CI_EXEC "cat ${BASE_SCRATCH_DIR}/sanitizer-output/* 2> /dev/null"' ERR

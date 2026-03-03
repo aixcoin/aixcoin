@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_NETADDRESS_H
-#define BITCOIN_NETADDRESS_H
+#ifndef AIXCOIN_NETADDRESS_H
+#define AIXCOIN_NETADDRESS_H
 
 #if defined(HAVE_CONFIG_H)
 #include <config/aixcoin-config.h>
@@ -573,4 +573,4 @@ private:
     const uint64_t m_salt_k1;
 };
 
-#endif // BITCOIN_NETADDRESS_H
+#endif // AIXCOIN_NETADDRESS_H

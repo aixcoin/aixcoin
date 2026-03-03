@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_UTIL_VECTOR_H
-#define BITCOIN_UTIL_VECTOR_H
+#ifndef AIXCOIN_UTIL_VECTOR_H
+#define AIXCOIN_UTIL_VECTOR_H
 
 #include <initializer_list>
 #include <type_traits>
@@ -67,4 +67,4 @@ inline void ClearShrink(V& v) noexcept
     V{}.swap(v);
 }
 
-#endif // BITCOIN_UTIL_VECTOR_H
+#endif // AIXCOIN_UTIL_VECTOR_H

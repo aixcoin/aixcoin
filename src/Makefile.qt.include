@@ -4,7 +4,7 @@
 
 bin_PROGRAMS += qt/aixcoin-qt
 
-if BUILD_BITCOIN_GUI
+if BUILD_AIXCOIN_GUI
   bin_PROGRAMS += aixcoin-gui
 endif
 
@@ -89,7 +89,7 @@ QT_MOC_CPP = \
   qt/moc_walletmodel.cpp \
   qt/moc_walletview.cpp
 
-BITCOIN_MM = \
+AIXCOIN_MM = \
   qt/macdockiconhandler.mm \
   qt/macnotificationhandler.mm \
   qt/macos_appnap.mm
@@ -105,7 +105,7 @@ QT_QRC = qt/aixcoin.qrc
 QT_QRC_LOCALE_CPP = qt/qrc_aixcoin_locale.cpp
 QT_QRC_LOCALE = qt/aixcoin_locale.qrc
 
-BITCOIN_QT_H = \
+AIXCOIN_QT_H = \
   qt/addressbookpage.h \
   qt/addresstablemodel.h \
   qt/askpassphrasedialog.h \
@@ -219,7 +219,7 @@ QT_RES_ICONS = \
   qt/res/icons/tx_mined.png \
   qt/res/icons/warning.png
 
-BITCOIN_QT_BASE_CPP = \
+AIXCOIN_QT_BASE_CPP = \
   qt/bantablemodel.cpp \
   qt/aixcoin.cpp \
   qt/aixcoinaddressvalidator.cpp \
@@ -246,9 +246,9 @@ BITCOIN_QT_BASE_CPP = \
   qt/trafficgraphwidget.cpp \
   qt/utilitydialog.cpp
 
-BITCOIN_QT_WINDOWS_CPP = qt/winshutdownmonitor.cpp
+AIXCOIN_QT_WINDOWS_CPP = qt/winshutdownmonitor.cpp
 
-BITCOIN_QT_WALLET_CPP = \
+AIXCOIN_QT_WALLET_CPP = \
   qt/addressbookpage.cpp \
   qt/addresstablemodel.cpp \
   qt/askpassphrasedialog.cpp \
@@ -280,29 +280,29 @@ BITCOIN_QT_WALLET_CPP = \
   qt/walletmodeltransaction.cpp \
   qt/walletview.cpp
 
-BITCOIN_QT_CPP = $(BITCOIN_QT_BASE_CPP)
+AIXCOIN_QT_CPP = $(AIXCOIN_QT_BASE_CPP)
 if TARGET_WINDOWS
-BITCOIN_QT_CPP += $(BITCOIN_QT_WINDOWS_CPP)
+AIXCOIN_QT_CPP += $(AIXCOIN_QT_WINDOWS_CPP)
 endif
 if ENABLE_WALLET
-BITCOIN_QT_CPP += $(BITCOIN_QT_WALLET_CPP)
+AIXCOIN_QT_CPP += $(AIXCOIN_QT_WALLET_CPP)
 endif # ENABLE_WALLET
 
 QT_RES_ANIMATION = $(wildcard $(srcdir)/qt/res/animation/spinner-*.png)
 
-BITCOIN_QT_RC = qt/res/aixcoin-qt-res.rc
+AIXCOIN_QT_RC = qt/res/aixcoin-qt-res.rc
 
-BITCOIN_QT_INCLUDES = -DQT_NO_KEYWORDS -DQT_USE_QSTRINGBUILDER
+AIXCOIN_QT_INCLUDES = -DQT_NO_KEYWORDS -DQT_USE_QSTRINGBUILDER
 
-qt_libaixcoinqt_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(BITCOIN_QT_INCLUDES) \
+qt_libaixcoinqt_a_CPPFLAGS = $(AM_CPPFLAGS) $(AIXCOIN_INCLUDES) $(AIXCOIN_QT_INCLUDES) \
   $(QT_INCLUDES) $(QT_DBUS_INCLUDES) $(QR_CFLAGS) $(BOOST_CPPFLAGS)
 qt_libaixcoinqt_a_CXXFLAGS = $(AM_CXXFLAGS) $(QT_PIE_FLAGS)
 qt_libaixcoinqt_a_OBJCXXFLAGS = $(AM_OBJCXXFLAGS) $(QT_PIE_FLAGS)
 
-qt_libaixcoinqt_a_SOURCES = $(BITCOIN_QT_CPP) $(BITCOIN_QT_H) $(QT_FORMS_UI) \
+qt_libaixcoinqt_a_SOURCES = $(AIXCOIN_QT_CPP) $(AIXCOIN_QT_H) $(QT_FORMS_UI) \
   $(QT_QRC) $(QT_QRC_LOCALE) $(QT_TS) $(QT_RES_FONTS) $(QT_RES_ICONS) $(QT_RES_ANIMATION)
 if TARGET_DARWIN
-  qt_libaixcoinqt_a_SOURCES += $(BITCOIN_MM)
+  qt_libaixcoinqt_a_SOURCES += $(AIXCOIN_MM)
 endif
 
 nodist_qt_libaixcoinqt_a_SOURCES = $(QT_MOC_CPP) $(QT_MOC) $(QT_QRC_CPP) $(QT_QRC_LOCALE_CPP)
@@ -316,22 +316,22 @@ $(QT_MOC): $(QT_FORMS_H)
 $(qt_libaixcoinqt_a_OBJECTS) $(qt_aixcoin_qt_OBJECTS) $(aixcoin_gui_OBJECTS) : | $(QT_MOC)
 
 # aixcoin-qt and aixcoin-gui binaries #
-aixcoin_qt_cppflags = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(BITCOIN_QT_INCLUDES) \
+aixcoin_qt_cppflags = $(AM_CPPFLAGS) $(AIXCOIN_INCLUDES) $(AIXCOIN_QT_INCLUDES) \
   $(QT_INCLUDES) $(QR_CFLAGS)
 aixcoin_qt_cxxflags = $(AM_CXXFLAGS) $(QT_PIE_FLAGS)
 
 aixcoin_qt_sources = qt/main.cpp
 if TARGET_WINDOWS
-  aixcoin_qt_sources += $(BITCOIN_QT_RC)
+  aixcoin_qt_sources += $(AIXCOIN_QT_RC)
 endif
-aixcoin_qt_ldadd = qt/libaixcoinqt.a $(LIBBITCOIN_NODE)
+aixcoin_qt_ldadd = qt/libaixcoinqt.a $(LIBAIXCOIN_NODE)
 if ENABLE_WALLET
-aixcoin_qt_ldadd += $(LIBBITCOIN_UTIL) $(LIBBITCOIN_WALLET)
+aixcoin_qt_ldadd += $(LIBAIXCOIN_UTIL) $(LIBAIXCOIN_WALLET)
 endif
 if ENABLE_ZMQ
-aixcoin_qt_ldadd += $(LIBBITCOIN_ZMQ) $(ZMQ_LIBS)
+aixcoin_qt_ldadd += $(LIBAIXCOIN_ZMQ) $(ZMQ_LIBS)
 endif
-aixcoin_qt_ldadd += $(LIBBITCOIN_CLI) $(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) $(LIBBITCOIN_CONSENSUS) $(LIBBITCOIN_CRYPTO) $(LIBUNIVALUE) $(LIBLEVELDB) $(LIBMEMENV) \
+aixcoin_qt_ldadd += $(LIBAIXCOIN_CLI) $(LIBAIXCOIN_COMMON) $(LIBAIXCOIN_UTIL) $(LIBAIXCOIN_CONSENSUS) $(LIBAIXCOIN_CRYPTO) $(LIBUNIVALUE) $(LIBLEVELDB) $(LIBMEMENV) \
   $(QT_LIBS) $(QT_DBUS_LIBS) $(QR_LIBS) $(BDB_LIBS) $(MINIUPNPC_LIBS) $(NATPMP_LIBS) $(LIBSECP256K1) \
   $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(SQLITE_LIBS)
 aixcoin_qt_ldflags = $(RELDFLAGS) $(AM_LDFLAGS) $(QT_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) $(PTHREAD_FLAGS)
@@ -347,7 +347,7 @@ qt_aixcoin_qt_LIBTOOLFLAGS = $(aixcoin_qt_libtoolflags)
 aixcoin_gui_CPPFLAGS = $(aixcoin_qt_cppflags)
 aixcoin_gui_CXXFLAGS = $(aixcoin_qt_cxxflags)
 aixcoin_gui_SOURCES = $(aixcoin_qt_sources) init/aixcoin-gui.cpp
-aixcoin_gui_LDADD = $(aixcoin_qt_ldadd) $(LIBBITCOIN_IPC) $(LIBBITCOIN_UTIL) $(LIBMULTIPROCESS_LIBS)
+aixcoin_gui_LDADD = $(aixcoin_qt_ldadd) $(LIBAIXCOIN_IPC) $(LIBAIXCOIN_UTIL) $(LIBMULTIPROCESS_LIBS)
 aixcoin_gui_LDFLAGS = $(aixcoin_qt_ldflags)
 aixcoin_gui_LIBTOOLFLAGS = $(aixcoin_qt_libtoolflags)
 
@@ -362,7 +362,7 @@ $(srcdir)/qt/aixcoinstrings.cpp: FORCE
 
 # The resulted aixcoin_en.xlf source file should follow Transifex requirements.
 # See: https://docs.transifex.com/formats/xliff#how-to-distinguish-between-a-source-file-and-a-translation-file
-translate: $(srcdir)/qt/aixcoinstrings.cpp $(QT_FORMS_UI) $(QT_FORMS_UI) $(BITCOIN_QT_BASE_CPP) qt/aixcoin.cpp $(BITCOIN_QT_WINDOWS_CPP) $(BITCOIN_QT_WALLET_CPP) $(BITCOIN_QT_H) $(BITCOIN_MM)
+translate: $(srcdir)/qt/aixcoinstrings.cpp $(QT_FORMS_UI) $(QT_FORMS_UI) $(AIXCOIN_QT_BASE_CPP) qt/aixcoin.cpp $(AIXCOIN_QT_WINDOWS_CPP) $(AIXCOIN_QT_WALLET_CPP) $(AIXCOIN_QT_H) $(AIXCOIN_MM)
 	@test -n $(LUPDATE) || echo "lupdate is required for updating translations"
 	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(LUPDATE) -no-obsolete -I $(srcdir) -locations relative $^ -ts $(srcdir)/qt/locale/aixcoin_en.ts
 	@test -n $(LCONVERT) || echo "lconvert is required for updating translations"
@@ -385,7 +385,7 @@ CLEAN_QT = $(nodist_qt_libaixcoinqt_a_SOURCES) $(QT_QM) $(QT_FORMS_H) qt/*.gcda 
 CLEANFILES += $(CLEAN_QT)
 
 aixcoin_qt_clean: FORCE
-	rm -f $(CLEAN_QT) $(qt_libaixcoinqt_a_OBJECTS) $(qt_aixcoin_qt_OBJECTS) qt/aixcoin-qt$(EXEEXT) $(LIBBITCOINQT)
+	rm -f $(CLEAN_QT) $(qt_libaixcoinqt_a_OBJECTS) $(qt_aixcoin_qt_OBJECTS) qt/aixcoin-qt$(EXEEXT) $(LIBAIXCOINQT)
 
 aixcoin_qt : qt/aixcoin-qt$(EXEEXT)
 

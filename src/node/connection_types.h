@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_NODE_CONNECTION_TYPES_H
-#define BITCOIN_NODE_CONNECTION_TYPES_H
+#ifndef AIXCOIN_NODE_CONNECTION_TYPES_H
+#define AIXCOIN_NODE_CONNECTION_TYPES_H
 
 #include <string>
 
@@ -79,4 +79,4 @@ enum class ConnectionType {
 /** Convert ConnectionType enum to a string value */
 std::string ConnectionTypeAsString(ConnectionType conn_type);
 
-#endif // BITCOIN_NODE_CONNECTION_TYPES_H
+#endif // AIXCOIN_NODE_CONNECTION_TYPES_H

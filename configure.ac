@@ -29,17 +29,17 @@ if test -n "$PKG_CONFIG_LIBDIR"; then
   PKG_CONFIG="env PKG_CONFIG_LIBDIR=$PKG_CONFIG_LIBDIR $PKG_CONFIG"
 fi
 
-BITCOIN_DAEMON_NAME=aixcoind
-BITCOIN_GUI_NAME=aixcoin-qt
-BITCOIN_TEST_NAME=test_aixcoin
-BITCOIN_CLI_NAME=aixcoin-cli
-BITCOIN_TX_NAME=aixcoin-tx
-BITCOIN_UTIL_NAME=aixcoin-util
-BITCOIN_CHAINSTATE_NAME=aixcoin-chainstate
-BITCOIN_WALLET_TOOL_NAME=aixcoin-wallet
+AIXCOIN_DAEMON_NAME=aixcoind
+AIXCOIN_GUI_NAME=aixcoin-qt
+AIXCOIN_TEST_NAME=test_aixcoin
+AIXCOIN_CLI_NAME=aixcoin-cli
+AIXCOIN_TX_NAME=aixcoin-tx
+AIXCOIN_UTIL_NAME=aixcoin-util
+AIXCOIN_CHAINSTATE_NAME=aixcoin-chainstate
+AIXCOIN_WALLET_TOOL_NAME=aixcoin-wallet
 dnl Multi Process
-BITCOIN_MP_NODE_NAME=aixcoin-node
-BITCOIN_MP_GUI_NAME=aixcoin-gui
+AIXCOIN_MP_NODE_NAME=aixcoin-node
+AIXCOIN_MP_GUI_NAME=aixcoin-gui
 
 dnl Unless the user specified ARFLAGS, force it to be cr
 dnl This is also the default as-of libtool 2.4.7
@@ -50,9 +50,9 @@ fi
 
 AC_CANONICAL_HOST
 
-AH_TOP([#ifndef BITCOIN_CONFIG_H])
-AH_TOP([#define BITCOIN_CONFIG_H])
-AH_BOTTOM([#endif //BITCOIN_CONFIG_H])
+AH_TOP([#ifndef AIXCOIN_CONFIG_H])
+AH_TOP([#define AIXCOIN_CONFIG_H])
+AH_BOTTOM([#endif //AIXCOIN_CONFIG_H])
 
 dnl Automake init set-up and checks
 AM_INIT_AUTOMAKE([1.13 no-define subdir-objects foreign])
@@ -752,7 +752,7 @@ case $host in
 
          if test "$use_bdb" != "no" && $BREW list --versions berkeley-db@4 >/dev/null && test "$BDB_CFLAGS" = "" && test "$BDB_LIBS" = ""; then
            bdb_prefix=$($BREW --prefix berkeley-db@4 2>/dev/null)
-           dnl This must precede the call to BITCOIN_FIND_BDB48 below.
+           dnl This must precede the call to AIXCOIN_FIND_BDB48 below.
            BDB_CFLAGS="-I$bdb_prefix/include"
            BDB_LIBS="-L$bdb_prefix/lib -ldb_cxx-4.8"
          fi
@@ -1325,10 +1325,10 @@ if test "$enable_fuzz" = "yes"; then
 
   AX_CHECK_PREPROC_FLAG([-DABORT_ON_FAILED_ASSUME], [DEBUG_CPPFLAGS="$DEBUG_CPPFLAGS -DABORT_ON_FAILED_ASSUME"], [], [$CXXFLAG_WERROR])
 else
-  BITCOIN_QT_INIT
+  AIXCOIN_QT_INIT
 
   dnl sets $aixcoin_enable_qt, $aixcoin_enable_qt_test, $aixcoin_enable_qt_dbus
-  BITCOIN_QT_CONFIGURE([5.11.3])
+  AIXCOIN_QT_CONFIGURE([5.11.3])
 
   dnl Keep a copy of the original $QT_INCLUDES and use it when invoking qt's moc
   QT_INCLUDES_UNSUPPRESSED=$QT_INCLUDES
@@ -1361,7 +1361,7 @@ fi
 if test "$enable_wallet" != "no"; then
     dnl Check for libdb_cxx only if wallet enabled
     if test "$use_bdb" != "no"; then
-      BITCOIN_FIND_BDB48
+      AIXCOIN_FIND_BDB48
       if test "$suppress_external_warnings" != "no" ; then
         BDB_CPPFLAGS=SUPPRESS_WARNINGS($BDB_CPPFLAGS)
       fi
@@ -1611,7 +1611,7 @@ fi
 dnl QR Code encoding library check
 
 if test "$use_qr" != "no"; then
-  BITCOIN_QT_CHECK([PKG_CHECK_MODULES([QR], [libqrencode], [have_qrencode=yes], [have_qrencode=no])])
+  AIXCOIN_QT_CHECK([PKG_CHECK_MODULES([QR], [libqrencode], [have_qrencode=yes], [have_qrencode=no])])
 fi
 
 dnl ZMQ check
@@ -1661,8 +1661,8 @@ else
 fi
 
 AM_CONDITIONAL([BUILD_MULTIPROCESS], [test "$build_multiprocess" = "yes"])
-AM_CONDITIONAL([BUILD_BITCOIN_NODE], [test "$build_multiprocess" = "yes"])
-AM_CONDITIONAL([BUILD_BITCOIN_GUI], [test "$build_multiprocess" = "yes"])
+AM_CONDITIONAL([BUILD_AIXCOIN_NODE], [test "$build_multiprocess" = "yes"])
+AM_CONDITIONAL([BUILD_AIXCOIN_GUI], [test "$build_multiprocess" = "yes"])
 
 dnl codegen tools check
 
@@ -1676,23 +1676,23 @@ if test "$build_multiprocess" != "no"; then
 fi
 
 AC_MSG_CHECKING([whether to build aixcoind])
-AM_CONDITIONAL([BUILD_BITCOIND], [test $build_aixcoind = "yes"])
+AM_CONDITIONAL([BUILD_AIXCOIND], [test $build_aixcoind = "yes"])
 AC_MSG_RESULT($build_aixcoind)
 
 AC_MSG_CHECKING([whether to build aixcoin-cli])
-AM_CONDITIONAL([BUILD_BITCOIN_CLI], [test $build_aixcoin_cli = "yes"])
+AM_CONDITIONAL([BUILD_AIXCOIN_CLI], [test $build_aixcoin_cli = "yes"])
 AC_MSG_RESULT($build_aixcoin_cli)
 
 AC_MSG_CHECKING([whether to build aixcoin-tx])
-AM_CONDITIONAL([BUILD_BITCOIN_TX], [test $build_aixcoin_tx = "yes"])
+AM_CONDITIONAL([BUILD_AIXCOIN_TX], [test $build_aixcoin_tx = "yes"])
 AC_MSG_RESULT($build_aixcoin_tx)
 
 AC_MSG_CHECKING([whether to build aixcoin-wallet])
-AM_CONDITIONAL([BUILD_BITCOIN_WALLET], [test $build_aixcoin_wallet = "yes"])
+AM_CONDITIONAL([BUILD_AIXCOIN_WALLET], [test $build_aixcoin_wallet = "yes"])
 AC_MSG_RESULT($build_aixcoin_wallet)
 
 AC_MSG_CHECKING([whether to build aixcoin-util])
-AM_CONDITIONAL([BUILD_BITCOIN_UTIL], [test $build_aixcoin_util = "yes"])
+AM_CONDITIONAL([BUILD_AIXCOIN_UTIL], [test $build_aixcoin_util = "yes"])
 AC_MSG_RESULT($build_aixcoin_util)
 
 AC_MSG_CHECKING([whether to build experimental aixcoin-chainstate])
@@ -1701,18 +1701,18 @@ if test "$build_aixcoin_chainstate" = "yes"; then
     AC_MSG_ERROR([experimental aixcoin-chainstate cannot be built without the experimental aixcoinkernel library. Use --with-experimental-kernel-lib]);
   fi
 fi
-AM_CONDITIONAL([BUILD_BITCOIN_CHAINSTATE], [test $build_aixcoin_chainstate = "yes"])
+AM_CONDITIONAL([BUILD_AIXCOIN_CHAINSTATE], [test $build_aixcoin_chainstate = "yes"])
 AC_MSG_RESULT($build_aixcoin_chainstate)
 
 AC_MSG_CHECKING([whether to build libraries])
-AM_CONDITIONAL([BUILD_BITCOIN_LIBS], [test $build_aixcoin_libs = "yes"])
+AM_CONDITIONAL([BUILD_AIXCOIN_LIBS], [test $build_aixcoin_libs = "yes"])
 
 if test "$build_aixcoin_libs" = "yes"; then
   AC_DEFINE([HAVE_CONSENSUS_LIB], [1], [Define this symbol if the consensus lib has been built])
   AC_CONFIG_FILES([libaixcoinconsensus.pc:libaixcoinconsensus.pc.in])
 fi
 
-AM_CONDITIONAL([BUILD_BITCOIN_KERNEL_LIB], [test "$build_experimental_kernel_lib" != "no" && ( test "$build_experimental_kernel_lib" = "yes" || test "$build_aixcoin_chainstate" = "yes" )])
+AM_CONDITIONAL([BUILD_AIXCOIN_KERNEL_LIB], [test "$build_experimental_kernel_lib" != "no" && ( test "$build_experimental_kernel_lib" = "yes" || test "$build_aixcoin_chainstate" = "yes" )])
 
 AC_MSG_RESULT($build_aixcoin_libs)
 
@@ -1904,16 +1904,16 @@ AC_SUBST(COPYRIGHT_YEAR, _COPYRIGHT_YEAR)
 AC_SUBST(COPYRIGHT_HOLDERS, "_COPYRIGHT_HOLDERS")
 AC_SUBST(COPYRIGHT_HOLDERS_SUBSTITUTION, "_COPYRIGHT_HOLDERS_SUBSTITUTION")
 AC_SUBST(COPYRIGHT_HOLDERS_FINAL, "_COPYRIGHT_HOLDERS_FINAL")
-AC_SUBST(BITCOIN_DAEMON_NAME)
-AC_SUBST(BITCOIN_GUI_NAME)
-AC_SUBST(BITCOIN_TEST_NAME)
-AC_SUBST(BITCOIN_CLI_NAME)
-AC_SUBST(BITCOIN_TX_NAME)
-AC_SUBST(BITCOIN_UTIL_NAME)
-AC_SUBST(BITCOIN_CHAINSTATE_NAME)
-AC_SUBST(BITCOIN_WALLET_TOOL_NAME)
-AC_SUBST(BITCOIN_MP_NODE_NAME)
-AC_SUBST(BITCOIN_MP_GUI_NAME)
+AC_SUBST(AIXCOIN_DAEMON_NAME)
+AC_SUBST(AIXCOIN_GUI_NAME)
+AC_SUBST(AIXCOIN_TEST_NAME)
+AC_SUBST(AIXCOIN_CLI_NAME)
+AC_SUBST(AIXCOIN_TX_NAME)
+AC_SUBST(AIXCOIN_UTIL_NAME)
+AC_SUBST(AIXCOIN_CHAINSTATE_NAME)
+AC_SUBST(AIXCOIN_WALLET_TOOL_NAME)
+AC_SUBST(AIXCOIN_MP_NODE_NAME)
+AC_SUBST(AIXCOIN_MP_GUI_NAME)
 
 AC_SUBST(RELDFLAGS)
 AC_SUBST(CORE_LDFLAGS)

@@ -3,8 +3,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_VALIDATIONINTERFACE_H
-#define BITCOIN_VALIDATIONINTERFACE_H
+#ifndef AIXCOIN_VALIDATIONINTERFACE_H
+#define AIXCOIN_VALIDATIONINTERFACE_H
 
 #include <kernel/cs_main.h>
 #include <primitives/transaction.h> // CTransaction(Ref)
@@ -208,4 +208,4 @@ public:
 
 CMainSignals& GetMainSignals();
 
-#endif // BITCOIN_VALIDATIONINTERFACE_H
+#endif // AIXCOIN_VALIDATIONINTERFACE_H

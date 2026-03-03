@@ -1,6 +1,6 @@
 dist_man1_MANS=
 
-if BUILD_BITCOIND
+if BUILD_AIXCOIND
   dist_man1_MANS+=aixcoind.1
 endif
 
@@ -8,20 +8,20 @@ if ENABLE_QT
   dist_man1_MANS+=aixcoin-qt.1
 endif
 
-if BUILD_BITCOIN_CLI
+if BUILD_AIXCOIN_CLI
   dist_man1_MANS+=aixcoin-cli.1
 endif
 
-if BUILD_BITCOIN_TX
+if BUILD_AIXCOIN_TX
   dist_man1_MANS+=aixcoin-tx.1
 endif
 
-if BUILD_BITCOIN_UTIL
+if BUILD_AIXCOIN_UTIL
   dist_man1_MANS+=aixcoin-util.1
 endif
 
 if ENABLE_WALLET
-if BUILD_BITCOIN_WALLET
+if BUILD_AIXCOIN_WALLET
   dist_man1_MANS+=aixcoin-wallet.1
 endif
 endif

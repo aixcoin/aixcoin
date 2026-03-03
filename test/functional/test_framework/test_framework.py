@@ -252,9 +252,9 @@ class AixcoinTestFramework(metaclass=AixcoinTestMetaClass):
             "src",
             "aixcoin-util" + config["environment"]["EXEEXT"],
         )
-        self.options.aixcoind = os.getenv("BITCOIND", default=fname_aixcoind)
-        self.options.aixcoincli = os.getenv("BITCOINCLI", default=fname_aixcoincli)
-        self.options.aixcoinutil = os.getenv("BITCOINUTIL", default=fname_aixcoinutil)
+        self.options.aixcoind = os.getenv("AIXCOIND", default=fname_aixcoind)
+        self.options.aixcoincli = os.getenv("AIXCOINCLI", default=fname_aixcoincli)
+        self.options.aixcoinutil = os.getenv("AIXCOINUTIL", default=fname_aixcoinutil)
 
         os.environ['PATH'] = os.pathsep.join([
             os.path.join(config['environment']['BUILDDIR'], 'src'),
@@ -970,7 +970,7 @@ class AixcoinTestFramework(metaclass=AixcoinTestMetaClass):
 
     def is_aixcoin_util_compiled(self):
         """Checks whether aixcoin-util was compiled."""
-        return self.config["components"].getboolean("ENABLE_BITCOIN_UTIL")
+        return self.config["components"].getboolean("ENABLE_AIXCOIN_UTIL")
 
     def is_zmq_compiled(self):
         """Checks whether the zmq module was compiled."""

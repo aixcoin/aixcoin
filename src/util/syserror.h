@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_UTIL_SYSERROR_H
-#define BITCOIN_UTIL_SYSERROR_H
+#ifndef AIXCOIN_UTIL_SYSERROR_H
+#define AIXCOIN_UTIL_SYSERROR_H
 
 #include <string>
 
@@ -13,4 +13,4 @@
  */
 std::string SysErrorString(int err);
 
-#endif // BITCOIN_UTIL_SYSERROR_H
+#endif // AIXCOIN_UTIL_SYSERROR_H

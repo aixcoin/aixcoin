@@ -72,11 +72,11 @@
     <ReplaceInFile FilePath="$(ConfigIniOut)"
                   Replace="@USE_SQLITE_TRUE@" By=""></ReplaceInFile>
     <ReplaceInFile FilePath="$(ConfigIniOut)"
-                  Replace="@BUILD_BITCOIN_CLI_TRUE@" By=""></ReplaceInFile>
+                  Replace="@BUILD_AIXCOIN_CLI_TRUE@" By=""></ReplaceInFile>
     <ReplaceInFile FilePath="$(ConfigIniOut)"
-                  Replace="@BUILD_BITCOIN_WALLET_TRUE@" By=""></ReplaceInFile>
+                  Replace="@BUILD_AIXCOIN_WALLET_TRUE@" By=""></ReplaceInFile>
     <ReplaceInFile FilePath="$(ConfigIniOut)"
-                  Replace="@BUILD_BITCOIND_TRUE@" By=""></ReplaceInFile>
+                  Replace="@BUILD_AIXCOIND_TRUE@" By=""></ReplaceInFile>
     <ReplaceInFile FilePath="$(ConfigIniOut)"
                   Replace="@ENABLE_FUZZ_TRUE@" By=""></ReplaceInFile>
     <ReplaceInFile FilePath="$(ConfigIniOut)"

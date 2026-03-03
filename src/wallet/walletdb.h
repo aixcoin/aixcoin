@@ -3,8 +3,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_WALLET_WALLETDB_H
-#define BITCOIN_WALLET_WALLETDB_H
+#ifndef AIXCOIN_WALLET_WALLETDB_H
+#define AIXCOIN_WALLET_WALLETDB_H
 
 #include <script/sign.h>
 #include <wallet/db.h>
@@ -313,4 +313,4 @@ std::unique_ptr<WalletDatabase> CreateMockWalletDatabase(DatabaseOptions& option
 std::unique_ptr<WalletDatabase> CreateMockWalletDatabase();
 } // namespace wallet
 
-#endif // BITCOIN_WALLET_WALLETDB_H
+#endif // AIXCOIN_WALLET_WALLETDB_H

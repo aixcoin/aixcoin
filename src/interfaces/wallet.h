@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_INTERFACES_WALLET_H
-#define BITCOIN_INTERFACES_WALLET_H
+#ifndef AIXCOIN_INTERFACES_WALLET_H
+#define AIXCOIN_INTERFACES_WALLET_H
 
 #include <consensus/amount.h>
 #include <interfaces/chain.h>          // For ChainClient
@@ -433,4 +433,4 @@ std::unique_ptr<WalletLoader> MakeWalletLoader(Chain& chain, ArgsManager& args);
 
 } // namespace interfaces
 
-#endif // BITCOIN_INTERFACES_WALLET_H
+#endif // AIXCOIN_INTERFACES_WALLET_H

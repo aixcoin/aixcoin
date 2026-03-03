@@ -24,49 +24,49 @@ check_PROGRAMS =
 TESTS =
 BENCHMARKS =
 
-BITCOIN_INCLUDES=-I$(builddir) -I$(srcdir)/$(MINISKETCH_INCLUDE_DIR_INT) -I$(srcdir)/secp256k1/include -I$(srcdir)/$(UNIVALUE_INCLUDE_DIR_INT) $(LEVELDB_CPPFLAGS)
+AIXCOIN_INCLUDES=-I$(builddir) -I$(srcdir)/$(MINISKETCH_INCLUDE_DIR_INT) -I$(srcdir)/secp256k1/include -I$(srcdir)/$(UNIVALUE_INCLUDE_DIR_INT) $(LEVELDB_CPPFLAGS)
 
-LIBBITCOIN_NODE=libaixcoin_node.a
-LIBBITCOIN_COMMON=libaixcoin_common.a
-LIBBITCOIN_CONSENSUS=libaixcoin_consensus.a
-LIBBITCOIN_CLI=libaixcoin_cli.a
-LIBBITCOIN_UTIL=libaixcoin_util.a
-LIBBITCOIN_CRYPTO_BASE=crypto/libaixcoin_crypto_base.la
-LIBBITCOINQT=qt/libaixcoinqt.a
+LIBAIXCOIN_NODE=libaixcoin_node.a
+LIBAIXCOIN_COMMON=libaixcoin_common.a
+LIBAIXCOIN_CONSENSUS=libaixcoin_consensus.a
+LIBAIXCOIN_CLI=libaixcoin_cli.a
+LIBAIXCOIN_UTIL=libaixcoin_util.a
+LIBAIXCOIN_CRYPTO_BASE=crypto/libaixcoin_crypto_base.la
+LIBAIXCOINQT=qt/libaixcoinqt.a
 LIBSECP256K1=secp256k1/libsecp256k1.la
 
 if ENABLE_ZMQ
-LIBBITCOIN_ZMQ=libaixcoin_zmq.a
+LIBAIXCOIN_ZMQ=libaixcoin_zmq.a
 endif
-if BUILD_BITCOIN_LIBS
-LIBBITCOINCONSENSUS=libaixcoinconsensus.la
+if BUILD_AIXCOIN_LIBS
+LIBAIXCOINCONSENSUS=libaixcoinconsensus.la
 endif
-if BUILD_BITCOIN_KERNEL_LIB
-LIBBITCOINKERNEL=libaixcoinkernel.la
+if BUILD_AIXCOIN_KERNEL_LIB
+LIBAIXCOINKERNEL=libaixcoinkernel.la
 endif
 if ENABLE_WALLET
-LIBBITCOIN_WALLET=libaixcoin_wallet.a
-LIBBITCOIN_WALLET_TOOL=libaixcoin_wallet_tool.a
+LIBAIXCOIN_WALLET=libaixcoin_wallet.a
+LIBAIXCOIN_WALLET_TOOL=libaixcoin_wallet_tool.a
 endif
 
-LIBBITCOIN_CRYPTO = $(LIBBITCOIN_CRYPTO_BASE)
+LIBAIXCOIN_CRYPTO = $(LIBAIXCOIN_CRYPTO_BASE)
 if ENABLE_SSE41
-LIBBITCOIN_CRYPTO_SSE41 = crypto/libaixcoin_crypto_sse41.la
-LIBBITCOIN_CRYPTO += $(LIBBITCOIN_CRYPTO_SSE41)
+LIBAIXCOIN_CRYPTO_SSE41 = crypto/libaixcoin_crypto_sse41.la
+LIBAIXCOIN_CRYPTO += $(LIBAIXCOIN_CRYPTO_SSE41)
 endif
 if ENABLE_AVX2
-LIBBITCOIN_CRYPTO_AVX2 = crypto/libaixcoin_crypto_avx2.la
-LIBBITCOIN_CRYPTO += $(LIBBITCOIN_CRYPTO_AVX2)
+LIBAIXCOIN_CRYPTO_AVX2 = crypto/libaixcoin_crypto_avx2.la
+LIBAIXCOIN_CRYPTO += $(LIBAIXCOIN_CRYPTO_AVX2)
 endif
 if ENABLE_X86_SHANI
-LIBBITCOIN_CRYPTO_X86_SHANI = crypto/libaixcoin_crypto_x86_shani.la
-LIBBITCOIN_CRYPTO += $(LIBBITCOIN_CRYPTO_X86_SHANI)
+LIBAIXCOIN_CRYPTO_X86_SHANI = crypto/libaixcoin_crypto_x86_shani.la
+LIBAIXCOIN_CRYPTO += $(LIBAIXCOIN_CRYPTO_X86_SHANI)
 endif
 if ENABLE_ARM_SHANI
-LIBBITCOIN_CRYPTO_ARM_SHANI = crypto/libaixcoin_crypto_arm_shani.la
-LIBBITCOIN_CRYPTO += $(LIBBITCOIN_CRYPTO_ARM_SHANI)
+LIBAIXCOIN_CRYPTO_ARM_SHANI = crypto/libaixcoin_crypto_arm_shani.la
+LIBAIXCOIN_CRYPTO += $(LIBAIXCOIN_CRYPTO_ARM_SHANI)
 endif
-noinst_LTLIBRARIES += $(LIBBITCOIN_CRYPTO)
+noinst_LTLIBRARIES += $(LIBAIXCOIN_CRYPTO)
 
 $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(wildcard secp256k1/include/*)
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
@@ -74,49 +74,49 @@ $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(w
 # Make is not made aware of per-object dependencies to avoid limiting building parallelization
 # But to build the less dependent modules first, we manually select their order here:
 EXTRA_LIBRARIES += \
-  $(LIBBITCOIN_UTIL) \
-  $(LIBBITCOIN_COMMON) \
-  $(LIBBITCOIN_CONSENSUS) \
-  $(LIBBITCOIN_NODE) \
-  $(LIBBITCOIN_CLI) \
-  $(LIBBITCOIN_IPC) \
-  $(LIBBITCOIN_WALLET) \
-  $(LIBBITCOIN_WALLET_TOOL) \
-  $(LIBBITCOIN_ZMQ)
+  $(LIBAIXCOIN_UTIL) \
+  $(LIBAIXCOIN_COMMON) \
+  $(LIBAIXCOIN_CONSENSUS) \
+  $(LIBAIXCOIN_NODE) \
+  $(LIBAIXCOIN_CLI) \
+  $(LIBAIXCOIN_IPC) \
+  $(LIBAIXCOIN_WALLET) \
+  $(LIBAIXCOIN_WALLET_TOOL) \
+  $(LIBAIXCOIN_ZMQ)
 
-if BUILD_BITCOIND
+if BUILD_AIXCOIND
   bin_PROGRAMS += aixcoind
 endif
 
-if BUILD_BITCOIN_NODE
+if BUILD_AIXCOIN_NODE
   bin_PROGRAMS += aixcoin-node
 endif
 
-if BUILD_BITCOIN_CLI
+if BUILD_AIXCOIN_CLI
   bin_PROGRAMS += aixcoin-cli
 endif
 
-if BUILD_BITCOIN_TX
+if BUILD_AIXCOIN_TX
   bin_PROGRAMS += aixcoin-tx
 endif
 
 if ENABLE_WALLET
-if BUILD_BITCOIN_WALLET
+if BUILD_AIXCOIN_WALLET
   bin_PROGRAMS += aixcoin-wallet
 endif
 endif
 
-if BUILD_BITCOIN_UTIL
+if BUILD_AIXCOIN_UTIL
   bin_PROGRAMS += aixcoin-util
 endif
 
-if BUILD_BITCOIN_CHAINSTATE
+if BUILD_AIXCOIN_CHAINSTATE
   bin_PROGRAMS += aixcoin-chainstate
 endif
 
 .PHONY: FORCE check-symbols check-security
 # aixcoin core #
-BITCOIN_CORE_H = \
+AIXCOIN_CORE_H = \
   addrdb.h \
   addrman.h \
   addrman_impl.h \
@@ -359,7 +359,7 @@ obj/build.h: FORCE
 libaixcoin_util_a-clientversion.$(OBJEXT): obj/build.h
 
 # node #
-libaixcoin_node_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(BOOST_CPPFLAGS) $(MINIUPNPC_CPPFLAGS) $(NATPMP_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
+libaixcoin_node_a_CPPFLAGS = $(AM_CPPFLAGS) $(AIXCOIN_INCLUDES) $(BOOST_CPPFLAGS) $(MINIUPNPC_CPPFLAGS) $(NATPMP_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libaixcoin_node_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libaixcoin_node_a_SOURCES = \
   addrdb.cpp \
@@ -445,7 +445,7 @@ libaixcoin_node_a_SOURCES = \
   validation.cpp \
   validationinterface.cpp \
   versionbits.cpp \
-  $(BITCOIN_CORE_H)
+  $(AIXCOIN_CORE_H)
 
 if ENABLE_WALLET
 libaixcoin_node_a_SOURCES += wallet/init.cpp
@@ -458,7 +458,7 @@ endif
 
 # zmq #
 if ENABLE_ZMQ
-libaixcoin_zmq_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(ZMQ_CFLAGS)
+libaixcoin_zmq_a_CPPFLAGS = $(AM_CPPFLAGS) $(AIXCOIN_INCLUDES) $(ZMQ_CFLAGS)
 libaixcoin_zmq_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libaixcoin_zmq_a_SOURCES = \
   zmq/zmqabstractnotifier.cpp \
@@ -470,7 +470,7 @@ endif
 #
 
 # wallet #
-libaixcoin_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(BOOST_CPPFLAGS) $(BDB_CPPFLAGS) $(SQLITE_CFLAGS)
+libaixcoin_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(AIXCOIN_INCLUDES) $(BOOST_CPPFLAGS) $(BDB_CPPFLAGS) $(SQLITE_CFLAGS)
 libaixcoin_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libaixcoin_wallet_a_SOURCES = \
   wallet/coincontrol.cpp \
@@ -500,7 +500,7 @@ libaixcoin_wallet_a_SOURCES = \
   wallet/walletdb.cpp \
   wallet/walletutil.cpp \
   wallet/coinselection.cpp \
-  $(BITCOIN_CORE_H)
+  $(AIXCOIN_CORE_H)
 
 if USE_SQLITE
 libaixcoin_wallet_a_SOURCES += wallet/sqlite.cpp
@@ -511,11 +511,11 @@ endif
 #
 
 # wallet tool #
-libaixcoin_wallet_tool_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(BOOST_CPPFLAGS)
+libaixcoin_wallet_tool_a_CPPFLAGS = $(AM_CPPFLAGS) $(AIXCOIN_INCLUDES) $(BOOST_CPPFLAGS)
 libaixcoin_wallet_tool_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libaixcoin_wallet_tool_a_SOURCES = \
   wallet/wallettool.cpp \
-  $(BITCOIN_CORE_H)
+  $(AIXCOIN_CORE_H)
 #
 
 # crypto #
@@ -601,7 +601,7 @@ crypto_libaixcoin_crypto_arm_shani_la_SOURCES = crypto/sha256_arm_shani.cpp
 #
 
 # consensus #
-libaixcoin_consensus_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libaixcoin_consensus_a_CPPFLAGS = $(AM_CPPFLAGS) $(AIXCOIN_INCLUDES)
 libaixcoin_consensus_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libaixcoin_consensus_a_SOURCES = \
   arith_uint256.cpp \
@@ -639,7 +639,7 @@ libaixcoin_consensus_a_SOURCES = \
 #
 
 # common #
-libaixcoin_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(BOOST_CPPFLAGS)
+libaixcoin_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(AIXCOIN_INCLUDES) $(BOOST_CPPFLAGS)
 libaixcoin_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libaixcoin_common_a_SOURCES = \
   base58.cpp \
@@ -680,7 +680,7 @@ libaixcoin_common_a_SOURCES = \
   script/signingprovider.cpp \
   script/standard.cpp \
   warnings.cpp \
-  $(BITCOIN_CORE_H)
+  $(AIXCOIN_CORE_H)
 
 if USE_LIBEVENT
 libaixcoin_common_a_CPPFLAGS += $(EVENT_CFLAGS)
@@ -689,7 +689,7 @@ endif
 #
 
 # util #
-libaixcoin_util_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libaixcoin_util_a_CPPFLAGS = $(AM_CPPFLAGS) $(AIXCOIN_INCLUDES)
 libaixcoin_util_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libaixcoin_util_a_SOURCES = \
   support/lockedpool.cpp \
@@ -729,24 +729,24 @@ libaixcoin_util_a_SOURCES = \
   util/syscall_sandbox.cpp \
   util/time.cpp \
   util/tokenpipe.cpp \
-  $(BITCOIN_CORE_H)
+  $(AIXCOIN_CORE_H)
 #
 
 # cli #
-libaixcoin_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libaixcoin_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(AIXCOIN_INCLUDES)
 libaixcoin_cli_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libaixcoin_cli_a_SOURCES = \
   compat/stdin.h \
   compat/stdin.cpp \
   rpc/client.cpp \
-  $(BITCOIN_CORE_H)
+  $(AIXCOIN_CORE_H)
 
 nodist_libaixcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
 # aixcoind & aixcoin-node binaries #
 aixcoin_daemon_sources = aixcoind.cpp
-aixcoin_bin_cppflags = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+aixcoin_bin_cppflags = $(AM_CPPFLAGS) $(AIXCOIN_INCLUDES)
 aixcoin_bin_cxxflags = $(AM_CXXFLAGS) $(PIE_FLAGS)
 aixcoin_bin_ldflags = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) $(PTHREAD_FLAGS)
 
@@ -755,13 +755,13 @@ aixcoin_daemon_sources += aixcoind-res.rc
 endif
 
 aixcoin_bin_ldadd = \
-  $(LIBBITCOIN_WALLET) \
-  $(LIBBITCOIN_COMMON) \
-  $(LIBBITCOIN_UTIL) \
+  $(LIBAIXCOIN_WALLET) \
+  $(LIBAIXCOIN_COMMON) \
+  $(LIBAIXCOIN_UTIL) \
   $(LIBUNIVALUE) \
-  $(LIBBITCOIN_ZMQ) \
-  $(LIBBITCOIN_CONSENSUS) \
-  $(LIBBITCOIN_CRYPTO) \
+  $(LIBAIXCOIN_ZMQ) \
+  $(LIBAIXCOIN_CONSENSUS) \
+  $(LIBAIXCOIN_CRYPTO) \
   $(LIBLEVELDB) \
   $(LIBMEMENV) \
   $(LIBSECP256K1)
@@ -772,17 +772,17 @@ aixcoind_SOURCES = $(aixcoin_daemon_sources) init/aixcoind.cpp
 aixcoind_CPPFLAGS = $(aixcoin_bin_cppflags)
 aixcoind_CXXFLAGS = $(aixcoin_bin_cxxflags)
 aixcoind_LDFLAGS = $(aixcoin_bin_ldflags)
-aixcoind_LDADD = $(LIBBITCOIN_NODE) $(aixcoin_bin_ldadd)
+aixcoind_LDADD = $(LIBAIXCOIN_NODE) $(aixcoin_bin_ldadd)
 
 aixcoin_node_SOURCES = $(aixcoin_daemon_sources) init/aixcoin-node.cpp
 aixcoin_node_CPPFLAGS = $(aixcoin_bin_cppflags)
 aixcoin_node_CXXFLAGS = $(aixcoin_bin_cxxflags)
 aixcoin_node_LDFLAGS = $(aixcoin_bin_ldflags)
-aixcoin_node_LDADD = $(LIBBITCOIN_NODE) $(aixcoin_bin_ldadd) $(LIBBITCOIN_IPC) $(LIBMULTIPROCESS_LIBS)
+aixcoin_node_LDADD = $(LIBAIXCOIN_NODE) $(aixcoin_bin_ldadd) $(LIBAIXCOIN_IPC) $(LIBMULTIPROCESS_LIBS)
 
 # aixcoin-cli binary #
 aixcoin_cli_SOURCES = aixcoin-cli.cpp
-aixcoin_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
+aixcoin_cli_CPPFLAGS = $(AM_CPPFLAGS) $(AIXCOIN_INCLUDES) $(EVENT_CFLAGS)
 aixcoin_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 aixcoin_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) $(PTHREAD_FLAGS)
 
@@ -791,18 +791,18 @@ aixcoin_cli_SOURCES += aixcoin-cli-res.rc
 endif
 
 aixcoin_cli_LDADD = \
-  $(LIBBITCOIN_CLI) \
+  $(LIBAIXCOIN_CLI) \
   $(LIBUNIVALUE) \
-  $(LIBBITCOIN_COMMON) \
-  $(LIBBITCOIN_UTIL) \
-  $(LIBBITCOIN_CRYPTO)
+  $(LIBAIXCOIN_COMMON) \
+  $(LIBAIXCOIN_UTIL) \
+  $(LIBAIXCOIN_CRYPTO)
 
 aixcoin_cli_LDADD += $(EVENT_LIBS)
 #
 
 # aixcoin-tx binary #
 aixcoin_tx_SOURCES = aixcoin-tx.cpp
-aixcoin_tx_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+aixcoin_tx_CPPFLAGS = $(AM_CPPFLAGS) $(AIXCOIN_INCLUDES)
 aixcoin_tx_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 aixcoin_tx_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) $(PTHREAD_FLAGS)
 
@@ -812,10 +812,10 @@ endif
 
 aixcoin_tx_LDADD = \
   $(LIBUNIVALUE) \
-  $(LIBBITCOIN_COMMON) \
-  $(LIBBITCOIN_UTIL) \
-  $(LIBBITCOIN_CONSENSUS) \
-  $(LIBBITCOIN_CRYPTO) \
+  $(LIBAIXCOIN_COMMON) \
+  $(LIBAIXCOIN_UTIL) \
+  $(LIBAIXCOIN_CONSENSUS) \
+  $(LIBAIXCOIN_CRYPTO) \
   $(LIBSECP256K1)
 #
 
@@ -826,13 +826,13 @@ aixcoin_wallet_CPPFLAGS = $(aixcoin_bin_cppflags)
 aixcoin_wallet_CXXFLAGS = $(aixcoin_bin_cxxflags)
 aixcoin_wallet_LDFLAGS = $(aixcoin_bin_ldflags)
 aixcoin_wallet_LDADD = \
-  $(LIBBITCOIN_WALLET_TOOL) \
-  $(LIBBITCOIN_WALLET) \
-  $(LIBBITCOIN_COMMON) \
-  $(LIBBITCOIN_UTIL) \
+  $(LIBAIXCOIN_WALLET_TOOL) \
+  $(LIBAIXCOIN_WALLET) \
+  $(LIBAIXCOIN_COMMON) \
+  $(LIBAIXCOIN_UTIL) \
   $(LIBUNIVALUE) \
-  $(LIBBITCOIN_CONSENSUS) \
-  $(LIBBITCOIN_CRYPTO) \
+  $(LIBAIXCOIN_CONSENSUS) \
+  $(LIBAIXCOIN_CRYPTO) \
   $(LIBSECP256K1) \
   $(BDB_LIBS) \
   $(SQLITE_LIBS)
@@ -844,7 +844,7 @@ endif
 
 # aixcoin-util binary #
 aixcoin_util_SOURCES = aixcoin-util.cpp
-aixcoin_util_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+aixcoin_util_CPPFLAGS = $(AM_CPPFLAGS) $(AIXCOIN_INCLUDES)
 aixcoin_util_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 aixcoin_util_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) $(PTHREAD_FLAGS)
 
@@ -853,21 +853,21 @@ aixcoin_util_SOURCES += aixcoin-util-res.rc
 endif
 
 aixcoin_util_LDADD = \
-  $(LIBBITCOIN_COMMON) \
-  $(LIBBITCOIN_UTIL) \
+  $(LIBAIXCOIN_COMMON) \
+  $(LIBAIXCOIN_UTIL) \
   $(LIBUNIVALUE) \
-  $(LIBBITCOIN_CONSENSUS) \
-  $(LIBBITCOIN_CRYPTO) \
+  $(LIBAIXCOIN_CONSENSUS) \
+  $(LIBAIXCOIN_CRYPTO) \
   $(LIBSECP256K1)
 #
 
 # aixcoin-chainstate binary #
 aixcoin_chainstate_SOURCES = aixcoin-chainstate.cpp
-aixcoin_chainstate_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(BOOST_CPPFLAGS)
+aixcoin_chainstate_CPPFLAGS = $(AM_CPPFLAGS) $(AIXCOIN_INCLUDES) $(BOOST_CPPFLAGS)
 aixcoin_chainstate_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 
 aixcoin_chainstate_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(PTHREAD_FLAGS) $(LIBTOOL_APP_LDFLAGS) -static
-aixcoin_chainstate_LDADD = $(LIBBITCOINKERNEL)
+aixcoin_chainstate_LDADD = $(LIBAIXCOINKERNEL)
 
 # libtool is unable to calculate this indirect dependency, presumably because it's a subproject.
 # libsecp256k1 only needs to be linked in when libaixcoinkernel is static.
@@ -875,12 +875,12 @@ aixcoin_chainstate_LDADD += $(LIBSECP256K1)
 #
 
 # aixcoinkernel library #
-if BUILD_BITCOIN_KERNEL_LIB
-lib_LTLIBRARIES += $(LIBBITCOINKERNEL)
+if BUILD_AIXCOIN_KERNEL_LIB
+lib_LTLIBRARIES += $(LIBAIXCOINKERNEL)
 
 libaixcoinkernel_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS) $(PTHREAD_FLAGS)
-libaixcoinkernel_la_LIBADD = $(LIBBITCOIN_CRYPTO) $(LIBUNIVALUE) $(LIBLEVELDB) $(LIBMEMENV) $(LIBSECP256K1)
-libaixcoinkernel_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_BITCOIN_INTERNAL $(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS) -I$(srcdir)/$(UNIVALUE_INCLUDE_DIR_INT)
+libaixcoinkernel_la_LIBADD = $(LIBAIXCOIN_CRYPTO) $(LIBUNIVALUE) $(LIBLEVELDB) $(LIBMEMENV) $(LIBSECP256K1)
+libaixcoinkernel_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_AIXCOIN_INTERNAL $(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS) -I$(srcdir)/$(UNIVALUE_INCLUDE_DIR_INT)
 
 # libaixcoinkernel requires default symbol visibility, explicitly specify that
 # here so that things still work even when user configures with
@@ -977,19 +977,19 @@ libaixcoinkernel_la_SOURCES = \
 # Required for obj/build.h to be generated first.
 # More details: https://www.gnu.org/software/automake/manual/html_node/Built-Sources-Example.html
 libaixcoinkernel_la-clientversion.l$(OBJEXT): obj/build.h
-endif # BUILD_BITCOIN_KERNEL_LIB
+endif # BUILD_AIXCOIN_KERNEL_LIB
 #
 
 # aixcoinconsensus library #
-if BUILD_BITCOIN_LIBS
-lib_LTLIBRARIES += $(LIBBITCOINCONSENSUS)
+if BUILD_AIXCOIN_LIBS
+lib_LTLIBRARIES += $(LIBAIXCOINCONSENSUS)
 
 include_HEADERS = script/aixcoinconsensus.h
 libaixcoinconsensus_la_SOURCES = support/cleanse.cpp $(crypto_libaixcoin_crypto_base_la_SOURCES) $(libaixcoin_consensus_a_SOURCES)
 
 libaixcoinconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
 libaixcoinconsensus_la_LIBADD = $(LIBSECP256K1)
-libaixcoinconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_BITCOIN_INTERNAL
+libaixcoinconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_AIXCOIN_INTERNAL
 libaixcoinconsensus_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 
 endif
@@ -1065,7 +1065,7 @@ EXTRA_DIST += $(libaixcoin_ipc_mpgen_input)
 ipc/capnp/libaixcoin_ipc_a-protocol.$(OBJEXT): $(libaixcoin_ipc_mpgen_input:=.h)
 
 if BUILD_MULTIPROCESS
-LIBBITCOIN_IPC=libaixcoin_ipc.a
+LIBAIXCOIN_IPC=libaixcoin_ipc.a
 libaixcoin_ipc_a_SOURCES = \
   ipc/capnp/context.h \
   ipc/capnp/init-types.h \
@@ -1077,7 +1077,7 @@ libaixcoin_ipc_a_SOURCES = \
   ipc/process.cpp \
   ipc/process.h \
   ipc/protocol.h
-libaixcoin_ipc_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libaixcoin_ipc_a_CPPFLAGS = $(AM_CPPFLAGS) $(AIXCOIN_INCLUDES)
 libaixcoin_ipc_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS) $(LIBMULTIPROCESS_CFLAGS)
 
 include $(MPGEN_PREFIX)/include/mpgen.mk

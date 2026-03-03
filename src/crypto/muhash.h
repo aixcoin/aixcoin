@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_CRYPTO_MUHASH_H
-#define BITCOIN_CRYPTO_MUHASH_H
+#ifndef AIXCOIN_CRYPTO_MUHASH_H
+#define AIXCOIN_CRYPTO_MUHASH_H
 
 #if defined(HAVE_CONFIG_H)
 #include <config/aixcoin-config.h>
@@ -128,4 +128,4 @@ public:
     }
 };
 
-#endif // BITCOIN_CRYPTO_MUHASH_H
+#endif // AIXCOIN_CRYPTO_MUHASH_H

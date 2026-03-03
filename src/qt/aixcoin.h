@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_BITCOIN_H
-#define BITCOIN_QT_BITCOIN_H
+#ifndef AIXCOIN_QT_AIXCOIN_H
+#define AIXCOIN_QT_AIXCOIN_H
 
 #if defined(HAVE_CONFIG_H)
 #include <config/aixcoin-config.h>
@@ -115,4 +115,4 @@ private:
 
 int GuiMain(int argc, char* argv[]);
 
-#endif // BITCOIN_QT_BITCOIN_H
+#endif // AIXCOIN_QT_AIXCOIN_H

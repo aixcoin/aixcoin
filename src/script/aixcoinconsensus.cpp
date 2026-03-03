@@ -119,5 +119,5 @@ int aixcoinconsensus_verify_script(const unsigned char *scriptPubKey, unsigned i
 unsigned int aixcoinconsensus_version()
 {
     // Just use the API version for now
-    return BITCOINCONSENSUS_API_VER;
+    return AIXCOINCONSENSUS_API_VER;
 }

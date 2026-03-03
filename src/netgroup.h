@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_NETGROUP_H
-#define BITCOIN_NETGROUP_H
+#ifndef AIXCOIN_NETGROUP_H
+#define AIXCOIN_NETGROUP_H
 
 #include <netaddress.h>
 #include <uint256.h>
@@ -63,4 +63,4 @@ private:
     const std::vector<bool> m_asmap;
 };
 
-#endif // BITCOIN_NETGROUP_H
+#endif // AIXCOIN_NETGROUP_H
