@@ -1,9 +1,9 @@
-// Copyright (c) 2023-present The Bitcoin Core developers
+// Copyright (c) 2023-present The Aixcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or https://opensource.org/license/mit/.
 
-#ifndef BITCOIN_PRIVATE_BROADCAST_H
-#define BITCOIN_PRIVATE_BROADCAST_H
+#ifndef AIXCOIN_PRIVATE_BROADCAST_H
+#define AIXCOIN_PRIVATE_BROADCAST_H
 
 #include <net.h>
 #include <primitives/transaction.h>
@@ -183,4 +183,4 @@ private:
         m_transactions GUARDED_BY(m_mutex);
 };
 
-#endif // BITCOIN_PRIVATE_BROADCAST_H
+#endif // AIXCOIN_PRIVATE_BROADCAST_H

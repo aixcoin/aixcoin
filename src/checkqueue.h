@@ -1,9 +1,9 @@
-// Copyright (c) 2012-present The Bitcoin Core developers
+// Copyright (c) 2012-present The Aixcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_CHECKQUEUE_H
-#define BITCOIN_CHECKQUEUE_H
+#ifndef AIXCOIN_CHECKQUEUE_H
+#define AIXCOIN_CHECKQUEUE_H
 
 #include <sync.h>
 #include <tinyformat.h>
@@ -237,4 +237,4 @@ public:
     }
 };
 
-#endif // BITCOIN_CHECKQUEUE_H
+#endif // AIXCOIN_CHECKQUEUE_H

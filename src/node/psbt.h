@@ -1,9 +1,9 @@
-// Copyright (c) 2009-present The Bitcoin Core developers
+// Copyright (c) 2009-present The Aixcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_NODE_PSBT_H
-#define BITCOIN_NODE_PSBT_H
+#ifndef AIXCOIN_NODE_PSBT_H
+#define AIXCOIN_NODE_PSBT_H
 
 #include <psbt.h>
 
@@ -55,4 +55,4 @@ struct PSBTAnalysis {
 PSBTAnalysis AnalyzePSBT(PartiallySignedTransaction psbtx);
 } // namespace node
 
-#endif // BITCOIN_NODE_PSBT_H
+#endif // AIXCOIN_NODE_PSBT_H

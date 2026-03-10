@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) The Bitcoin Core developers
+# Copyright (c) The Aixcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or https://opensource.org/license/mit/.
 
@@ -69,22 +69,22 @@ def check_manifests(ci_type):
         return
 
     release_dir = Path.cwd() / "build" / "bin" / "Release"
-    manifest_path = release_dir / "bitcoind.manifest"
-    cmd_bitcoind_manifest = [
+    manifest_path = release_dir / "aixcoind.manifest"
+    cmd_aixcoind_manifest = [
         "mt.exe",
         "-nologo",
-        f"-inputresource:{release_dir / 'bitcoind.exe'}",
+        f"-inputresource:{release_dir / 'aixcoind.exe'}",
         f"-out:{manifest_path}",
     ]
-    run(cmd_bitcoind_manifest)
+    run(cmd_aixcoind_manifest)
     print(manifest_path.read_text())
 
     skips = {  # Skip as they currently do not have manifests
         "fuzz.exe",
-        "bench_bitcoin.exe",
-        "test_bitcoin-qt.exe",
+        "bench_aixcoin.exe",
+        "test_aixcoin-qt.exe",
         "test_kernel.exe",
-        "bitcoin-chainstate.exe",
+        "aixcoin-chainstate.exe",
     }
     for entry in release_dir.iterdir():
         if entry.suffix.lower() != ".exe":
@@ -111,7 +111,7 @@ def prepare_tests(ci_type):
             "git",
             "clone",
             "--depth=1",
-            "https://github.com/bitcoin-core/qa-assets",
+            "https://github.com/aixcoin-core/qa-assets",
             repo_dir,
         ]
         run(clone_cmd)
@@ -126,14 +126,14 @@ def run_tests(ci_type):
 
     if ci_type == "standard":
         test_envs = {
-            "BITCOIN_BIN": "bitcoin.exe",
-            "BITCOIND": "bitcoind.exe",
-            "BITCOINCLI": "bitcoin-cli.exe",
-            "BITCOIN_BENCH": "bench_bitcoin.exe",
-            "BITCOINTX": "bitcoin-tx.exe",
-            "BITCOINUTIL": "bitcoin-util.exe",
-            "BITCOINWALLET": "bitcoin-wallet.exe",
-            "BITCOINCHAINSTATE": "bitcoin-chainstate.exe",
+            "AIXCOIN_BIN": "aixcoin.exe",
+            "AIXCOIND": "aixcoind.exe",
+            "AIXCOINCLI": "aixcoin-cli.exe",
+            "AIXCOIN_BENCH": "bench_aixcoin.exe",
+            "AIXCOINTX": "aixcoin-tx.exe",
+            "AIXCOINUTIL": "aixcoin-util.exe",
+            "AIXCOINWALLET": "aixcoin-wallet.exe",
+            "AIXCOINCHAINSTATE": "aixcoin-chainstate.exe",
         }
         for var, exe in test_envs.items():
             os.environ[var] = str(release_bin / exe)
@@ -164,7 +164,7 @@ def run_tests(ci_type):
         run(test_cmd)
 
     elif ci_type == "fuzz":
-        os.environ["BITCOINFUZZ"] = str(release_bin / "fuzz.exe")
+        os.environ["AIXCOINFUZZ"] = str(release_bin / "fuzz.exe")
         fuzz_cmd = [
             sys.executable,
             str(build_dir / "test" / "fuzz" / "test_runner.py"),

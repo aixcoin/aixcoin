@@ -1,9 +1,9 @@
-// Copyright (c) 2011-present The Bitcoin Core developers
+// Copyright (c) 2011-present The Aixcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_MACDOCKICONHANDLER_H
-#define BITCOIN_QT_MACDOCKICONHANDLER_H
+#ifndef AIXCOIN_QT_MACDOCKICONHANDLER_H
+#define AIXCOIN_QT_MACDOCKICONHANDLER_H
 
 #include <QObject>
 
@@ -24,4 +24,4 @@ private:
     MacDockIconHandler();
 };
 
-#endif // BITCOIN_QT_MACDOCKICONHANDLER_H
+#endif // AIXCOIN_QT_MACDOCKICONHANDLER_H

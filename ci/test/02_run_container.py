@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) The Bitcoin Core developers
+# Copyright (c) The Aixcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or https://opensource.org/license/mit/.
 
@@ -59,7 +59,7 @@ def main():
         # Modify PATH to prepend the retry script, needed for CI_RETRY_EXE
         os.environ["PATH"] = f"{os.environ['BASE_ROOT_DIR']}/ci/retry:{os.environ['PATH']}"
     else:
-        CI_IMAGE_LABEL = "bitcoin-ci-test"
+        CI_IMAGE_LABEL = "aixcoin-ci-test"
 
         # Use buildx unconditionally
         # Using buildx is required to properly load the correct driver, for use with registry caching. Neither build, nor BUILDKIT=1 currently do this properly

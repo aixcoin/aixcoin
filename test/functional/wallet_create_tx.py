@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-# Copyright (c) 2018-present The Bitcoin Core developers
+# Copyright (c) 2018-present The Aixcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 from test_framework.messages import (
     tx_from_hex,
 )
-from test_framework.test_framework import BitcoinTestFramework
+from test_framework.test_framework import AixcoinTestFramework
 from test_framework.util import (
     assert_equal,
     assert_raises_rpc_error,
@@ -17,7 +17,7 @@ from test_framework.blocktools import (
 
 from decimal import Decimal
 
-class CreateTxWalletTest(BitcoinTestFramework):
+class CreateTxWalletTest(AixcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
@@ -72,7 +72,7 @@ class CreateTxWalletTest(BitcoinTestFramework):
         # Hit maxtxfee with explicit fee rate
         self.log.info('Check maxtxfee in combination with explicit fee_rate=1000 sat/vB')
 
-        fee_rate_sats_per_vb = Decimal('0.01') * Decimal(1e8) / 1000  # Convert 0.01 BTC/kvB to sat/vB
+        fee_rate_sats_per_vb = Decimal('0.01') * Decimal(1e8) / 1000  # Convert 0.01 AIX/kvB to sat/vB
 
         assert_raises_rpc_error(
             -6,

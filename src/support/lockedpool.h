@@ -1,9 +1,9 @@
-// Copyright (c) 2016-present The Bitcoin Core developers
+// Copyright (c) 2016-present The Aixcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_SUPPORT_LOCKEDPOOL_H
-#define BITCOIN_SUPPORT_LOCKEDPOOL_H
+#ifndef AIXCOIN_SUPPORT_LOCKEDPOOL_H
+#define AIXCOIN_SUPPORT_LOCKEDPOOL_H
 
 #include <cstddef>
 #include <list>
@@ -232,4 +232,4 @@ private:
     static LockedPoolManager* _instance;
 };
 
-#endif // BITCOIN_SUPPORT_LOCKEDPOOL_H
+#endif // AIXCOIN_SUPPORT_LOCKEDPOOL_H

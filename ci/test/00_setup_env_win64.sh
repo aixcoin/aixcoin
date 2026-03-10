@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2025-present The Bitcoin Core developers
+# Copyright (c) 2025-present The Aixcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -13,7 +13,7 @@ export PACKAGES="g++-mingw-w64-ucrt64 nsis"
 export RUN_UNIT_TESTS=false
 export RUN_FUNCTIONAL_TESTS=false
 export GOAL="deploy"
-export BITCOIN_CONFIG="\
+export AIXCOIN_CONFIG="\
   --preset=dev-mode \
   -DENABLE_IPC=OFF \
   -DWITH_USDT=OFF \

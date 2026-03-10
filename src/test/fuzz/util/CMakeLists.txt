@@ -1,4 +1,4 @@
-# Copyright (c) 2023-present The Bitcoin Core developers
+# Copyright (c) 2023-present The Aixcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or https://opensource.org/license/mit/.
 
@@ -16,7 +16,7 @@ target_link_libraries(test_fuzz
   PRIVATE
     core_interface
     test_util
-    bitcoin_node
+    aixcoin_node
     Boost::headers
 )
 

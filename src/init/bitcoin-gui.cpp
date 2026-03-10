@@ -1,4 +1,4 @@
-// Copyright (c) 2021-present The Bitcoin Core developers
+// Copyright (c) 2021-present The Aixcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -16,12 +16,12 @@
 
 namespace init {
 namespace {
-const char* EXE_NAME = "bitcoin-gui";
+const char* EXE_NAME = "aixcoin-gui";
 
-class BitcoinGuiInit : public interfaces::Init
+class AixcoinGuiInit : public interfaces::Init
 {
 public:
-    BitcoinGuiInit(const char* arg0) : m_ipc(interfaces::MakeIpc(EXE_NAME, arg0, *this))
+    AixcoinGuiInit(const char* arg0) : m_ipc(interfaces::MakeIpc(EXE_NAME, arg0, *this))
     {
         InitContext(m_node);
         m_node.init = this;
@@ -34,9 +34,9 @@ public:
     }
     std::unique_ptr<interfaces::Echo> makeEcho() override { return interfaces::MakeEcho(); }
     interfaces::Ipc* ipc() override { return m_ipc.get(); }
-    // bitcoin-gui accepts -ipcbind option even though it does not use it
+    // aixcoin-gui accepts -ipcbind option even though it does not use it
     // directly. It just returns true here to accept the option because
-    // bitcoin-node accepts the option, and bitcoin-gui accepts all bitcoin-node
+    // aixcoin-node accepts the option, and aixcoin-gui accepts all aixcoin-node
     // options and will start the node with those options.
     bool canListenIpc() override { return true; }
     const char* exeName() override { return EXE_NAME; }
@@ -49,6 +49,6 @@ public:
 namespace interfaces {
 std::unique_ptr<Init> MakeGuiInit(int argc, char* argv[])
 {
-    return std::make_unique<init::BitcoinGuiInit>(argc > 0 ? argv[0] : "");
+    return std::make_unique<init::AixcoinGuiInit>(argc > 0 ? argv[0] : "");
 }
 } // namespace interfaces

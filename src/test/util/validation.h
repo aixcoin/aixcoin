@@ -1,9 +1,9 @@
-// Copyright (c) 2020-present The Bitcoin Core developers
+// Copyright (c) 2020-present The Aixcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_TEST_UTIL_VALIDATION_H
-#define BITCOIN_TEST_UTIL_VALIDATION_H
+#ifndef AIXCOIN_TEST_UTIL_VALIDATION_H
+#define AIXCOIN_TEST_UTIL_VALIDATION_H
 
 #include <validation.h>
 
@@ -41,4 +41,4 @@ public:
         const CBlockIndex* pindex);
 };
 
-#endif // BITCOIN_TEST_UTIL_VALIDATION_H
+#endif // AIXCOIN_TEST_UTIL_VALIDATION_H

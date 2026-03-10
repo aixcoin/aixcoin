@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-present The Bitcoin Core developers
+# Copyright (c) 2017-present The Aixcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """
@@ -32,7 +32,7 @@ from test_framework.socks5 import (
     Socks5Server,
 )
 from test_framework.test_framework import (
-    BitcoinTestFramework,
+    AixcoinTestFramework,
 )
 from test_framework.util import (
     assert_equal,
@@ -162,7 +162,7 @@ ADDRMAN_ADDRESSES = [
 ]
 
 
-class P2PPrivateBroadcast(BitcoinTestFramework):
+class P2PPrivateBroadcast(AixcoinTestFramework):
     def set_test_params(self):
         self.disable_autoconnect = False
         self.num_nodes = 2
@@ -453,7 +453,7 @@ class P2PPrivateBroadcast(BitcoinTestFramework):
             "0" * 64,
         )
 
-        # Stop the SOCKS5 proxy server to avoid it being upset by the bitcoin
+        # Stop the SOCKS5 proxy server to avoid it being upset by the aixcoin
         # node disconnecting in the middle of the SOCKS5 handshake when we
         # restart below.
         self.socks5_server.stop()
@@ -463,7 +463,7 @@ class P2PPrivateBroadcast(BitcoinTestFramework):
             "-privatebroadcast",
             "-v2transport=0",
             # A location where definitely a Tor control is not listening. This would allow
-            # Bitcoin Core to start, hoping/assuming that the location of the Tor proxy
+            # Aixcoin Core to start, hoping/assuming that the location of the Tor proxy
             # may be retrieved after startup from the Tor control, but it will not be, so
             # the RPC should throw.
             "-torcontrol=127.0.0.1:1",

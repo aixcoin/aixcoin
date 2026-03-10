@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2023-present The Bitcoin Core developers
+# Copyright (c) 2023-present The Aixcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -18,7 +18,7 @@ export RUN_FUZZ_TESTS=false
 export RUN_CHECK_DEPS=false
 export RUN_IWYU=true
 export GOAL="codegen"
-export BITCOIN_CONFIG="\
+export AIXCOIN_CONFIG="\
  --preset dev-mode -DBUILD_GUI=OFF \
  -DCMAKE_C_COMPILER=clang-${TIDY_LLVM_V} \
  -DCMAKE_CXX_COMPILER=clang++-${TIDY_LLVM_V} \

@@ -1,9 +1,9 @@
-// Copyright (c) 2021-present The Bitcoin Core developers
+// Copyright (c) 2021-present The Aixcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_IPC_PROTOCOL_H
-#define BITCOIN_IPC_PROTOCOL_H
+#ifndef AIXCOIN_IPC_PROTOCOL_H
+#define AIXCOIN_IPC_PROTOCOL_H
 
 #include <interfaces/init.h>
 
@@ -70,4 +70,4 @@ public:
 };
 } // namespace ipc
 
-#endif // BITCOIN_IPC_PROTOCOL_H
+#endif // AIXCOIN_IPC_PROTOCOL_H

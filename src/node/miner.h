@@ -1,10 +1,10 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-present The Bitcoin Core developers
+// Copyright (c) 2009-present The Aixcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_NODE_MINER_H
-#define BITCOIN_NODE_MINER_H
+#ifndef AIXCOIN_NODE_MINER_H
+#define AIXCOIN_NODE_MINER_H
 
 #include <interfaces/types.h>
 #include <node/types.h>
@@ -186,4 +186,4 @@ std::optional<BlockRef> WaitTipChanged(ChainstateManager& chainman, KernelNotifi
 bool CooldownIfHeadersAhead(ChainstateManager& chainman, KernelNotifications& kernel_notifications, const BlockRef& last_tip, bool& interrupt_mining);
 } // namespace node
 
-#endif // BITCOIN_NODE_MINER_H
+#endif // AIXCOIN_NODE_MINER_H

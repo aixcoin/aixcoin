@@ -1,10 +1,10 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-present The Bitcoin Core developers
+// Copyright (c) 2009-present The Aixcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_POLICY_FEERATE_H
-#define BITCOIN_POLICY_FEERATE_H
+#ifndef AIXCOIN_POLICY_FEERATE_H
+#define AIXCOIN_POLICY_FEERATE_H
 
 #include <consensus/amount.h>
 #include <serialize.h>
@@ -16,11 +16,11 @@
 #include <string>
 #include <type_traits>
 
-const std::string CURRENCY_UNIT = "BTC"; // One formatted unit
+const std::string CURRENCY_UNIT = "AIX"; // One formatted unit
 const std::string CURRENCY_ATOM = "sat"; // One indivisible minimum value unit
 
 enum class FeeRateFormat {
-    BTC_KVB, //!< Use BTC/kvB fee rate unit
+    AIX_KVB, //!< Use AIX/kvB fee rate unit
     SAT_VB,  //!< Use sat/vB fee rate unit
 };
 
@@ -72,11 +72,11 @@ public:
         m_feerate = FeePerVSize(GetFeePerK() + a.GetFeePerK(), 1000);
         return *this;
     }
-    std::string ToString(FeeRateFormat fee_rate_format = FeeRateFormat::BTC_KVB) const;
+    std::string ToString(FeeRateFormat fee_rate_format = FeeRateFormat::AIX_KVB) const;
     friend CFeeRate operator*(const CFeeRate& f, int a) { return CFeeRate(a * f.m_feerate.fee, f.m_feerate.size); }
     friend CFeeRate operator*(int a, const CFeeRate& f) { return CFeeRate(a * f.m_feerate.fee, f.m_feerate.size); }
 
     SERIALIZE_METHODS(CFeeRate, obj) { READWRITE(obj.m_feerate.fee, obj.m_feerate.size); }
 };
 
-#endif // BITCOIN_POLICY_FEERATE_H
+#endif // AIXCOIN_POLICY_FEERATE_H

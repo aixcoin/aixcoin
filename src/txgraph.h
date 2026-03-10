@@ -1,4 +1,4 @@
-// Copyright (c) The Bitcoin Core developers
+// Copyright (c) The Aixcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -12,8 +12,8 @@
 
 #include <util/feefrac.h>
 
-#ifndef BITCOIN_TXGRAPH_H
-#define BITCOIN_TXGRAPH_H
+#ifndef AIXCOIN_TXGRAPH_H
+#define AIXCOIN_TXGRAPH_H
 
 static constexpr unsigned MAX_CLUSTER_COUNT_LIMIT{64};
 
@@ -32,7 +32,7 @@ static constexpr unsigned MAX_CLUSTER_COUNT_LIMIT{64};
  * be close to the optimal order those transactions should be mined in if the goal is fee
  * maximization, though this is a best effort only, not a strong guarantee.
  *
- * For more explanation, see https://delvingbitcoin.org/t/introduction-to-cluster-linearization/1032
+ * For more explanation, see https://delvingaixcoin.org/t/introduction-to-cluster-linearization/1032
  *
  * This linearization is partitioned into chunks: groups of transactions that according to this
  * order would be mined together. Each chunk consists of the highest-feerate prefix of what remains
@@ -270,4 +270,4 @@ std::unique_ptr<TxGraph> MakeTxGraph(
     const std::function<std::strong_ordering(const TxGraph::Ref&, const TxGraph::Ref&)>& fallback_order
 ) noexcept;
 
-#endif // BITCOIN_TXGRAPH_H
+#endif // AIXCOIN_TXGRAPH_H

@@ -1,12 +1,12 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-present The Bitcoin Core developers
+// Copyright (c) 2009-present The Aixcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_COMMON_SYSTEM_H
-#define BITCOIN_COMMON_SYSTEM_H
+#ifndef AIXCOIN_COMMON_SYSTEM_H
+#define AIXCOIN_COMMON_SYSTEM_H
 
-#include <bitcoin-build-config.h> // IWYU pragma: keep
+#include <aixcoin-build-config.h> // IWYU pragma: keep
 #include <util/time.h>
 
 #include <chrono>
@@ -37,4 +37,4 @@ int GetNumCores();
  */
 std::optional<size_t> GetTotalRAM();
 
-#endif // BITCOIN_COMMON_SYSTEM_H
+#endif // AIXCOIN_COMMON_SYSTEM_H

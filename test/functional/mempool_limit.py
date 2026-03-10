@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2014-present The Bitcoin Core developers
+# Copyright (c) 2014-present The Aixcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test mempool limiting together/eviction with the wallet."""
@@ -10,7 +10,7 @@ from test_framework.mempool_util import (
     fill_mempool,
 )
 from test_framework.p2p import P2PTxInvStore
-from test_framework.test_framework import BitcoinTestFramework
+from test_framework.test_framework import AixcoinTestFramework
 from test_framework.util import (
     assert_equal,
     assert_fee_amount,
@@ -24,7 +24,7 @@ from test_framework.wallet import (
 )
 
 
-class MempoolLimitTest(BitcoinTestFramework):
+class MempoolLimitTest(AixcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
@@ -49,8 +49,8 @@ class MempoolLimitTest(BitcoinTestFramework):
 
         mempool_txids = node.getrawmempool()
         mempool_entries = [node.getmempoolentry(entry) for entry in mempool_txids]
-        fees_btc_per_kvb = [entry["fees"]["base"] / (Decimal(entry["vsize"]) / 1000) for entry in mempool_entries]
-        mempool_entry_minrate = min(fees_btc_per_kvb)
+        fees_AIX_per_kvb = [entry["fees"]["base"] / (Decimal(entry["vsize"]) / 1000) for entry in mempool_entries]
+        mempool_entry_minrate = min(fees_AIX_per_kvb)
         mempool_entry_minrate = mempool_entry_minrate.quantize(Decimal("0.00000000"))
 
         # There is a gap, our parents will be minrate, with child bringing up descendant fee sufficiently to avoid
@@ -122,8 +122,8 @@ class MempoolLimitTest(BitcoinTestFramework):
             assert eviction in mempool_txids
             for txid, entry in zip(mempool_txids, mempool_entries):
                 if txid == eviction:
-                    evicted_feerate_btc_per_kvb = entry["fees"]["modified"] / (Decimal(entry["vsize"]) / 1000)
-                    assert_greater_than(evicted_feerate_btc_per_kvb, max_parent_feerate)
+                    evicted_feerate_AIX_per_kvb = entry["fees"]["modified"] / (Decimal(entry["vsize"]) / 1000)
+                    assert_greater_than(evicted_feerate_AIX_per_kvb, max_parent_feerate)
 
     def test_mid_package_replacement(self):
         node = self.nodes[0]
@@ -252,10 +252,10 @@ class MempoolLimitTest(BitcoinTestFramework):
         self.log.info("Check a package that passes mempoolminfee but is evicted immediately after submission")
         mempoolmin_feerate = node.getmempoolinfo()["mempoolminfee"]
         current_mempool = node.getrawmempool(verbose=False)
-        worst_feerate_btcvb = Decimal("21000000")
+        worst_feerate_AIXvb = Decimal("21000000")
         for txid in current_mempool:
             entry = node.getmempoolentry(txid)
-            worst_feerate_btcvb = min(worst_feerate_btcvb, entry["fees"]["descendant"] / entry["descendantsize"])
+            worst_feerate_AIXvb = min(worst_feerate_AIXvb, entry["fees"]["descendant"] / entry["descendantsize"])
         # Needs to be large enough to trigger eviction
         # (note that the mempool usage of a tx is about three times its vsize)
         target_vsize_each = 50000
@@ -263,7 +263,7 @@ class MempoolLimitTest(BitcoinTestFramework):
         # Should be a true CPFP: parent's feerate is just below mempool min feerate
         parent_feerate = mempoolmin_feerate - Decimal("0.0000001")  # 0.01 sats/vbyte below min feerate
         # Parent + child is above mempool minimum feerate
-        child_feerate = (worst_feerate_btcvb * 1000) - Decimal("0.0000001")  # 0.01 sats/vbyte below worst feerate
+        child_feerate = (worst_feerate_AIXvb * 1000) - Decimal("0.0000001")  # 0.01 sats/vbyte below worst feerate
         # However, when eviction is triggered, these transactions should be at the bottom.
         # This assertion assumes parent and child are the same size.
         miniwallet.rescan_utxos()
@@ -272,7 +272,7 @@ class MempoolLimitTest(BitcoinTestFramework):
         # This package ranks below the lowest descendant package in the mempool
         package_fee = tx_parent_just_below["fee"] + tx_child_just_above["fee"]
         package_vsize = tx_parent_just_below["tx"].get_vsize() + tx_child_just_above["tx"].get_vsize()
-        assert_greater_than(worst_feerate_btcvb, package_fee / package_vsize)
+        assert_greater_than(worst_feerate_AIXvb, package_fee / package_vsize)
         assert_greater_than(mempoolmin_feerate, tx_parent_just_below["fee"] / (tx_parent_just_below["tx"].get_vsize()))
         assert_greater_than(package_fee / package_vsize, mempoolmin_feerate / 1000)
         res = node.submitpackage([tx_parent_just_below["hex"], tx_child_just_above["hex"]])

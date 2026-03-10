@@ -1,40 +1,40 @@
 v30.1 Release Notes
 ===================
 
-Bitcoin Core version v30.1 is now available from:
+Aixcoin Core version v30.1 is now available from:
 
-  <https://bitcoincore.org/bin/bitcoin-core-30.1/>
+  <https://aixcoincore.org/bin/aixcoin-core-30.1/>
 
 This release includes new features, various bug fixes and performance
 improvements, as well as updated translations.
 
 Please report bugs using the issue tracker at GitHub:
 
-  <https://github.com/bitcoin/bitcoin/issues>
+  <https://github.com/aixcoin/aixcoin/issues>
 
 To receive security and update notifications, please subscribe to:
 
-  <https://bitcoincore.org/en/list/announcements/join/>
+  <https://aixcoincore.org/en/list/announcements/join/>
 
 How to Upgrade
 ==============
 
 If you are running an older version, shut it down. Wait until it has completely
 shut down (which might take a few minutes in some cases), then run the
-installer (on Windows) or just copy over `/Applications/Bitcoin-Qt` (on macOS)
-or `bitcoind`/`bitcoin-qt` (on Linux).
+installer (on Windows) or just copy over `/Applications/Aixcoin-Qt` (on macOS)
+or `aixcoind`/`aixcoin-qt` (on Linux).
 
-Upgrading directly from a version of Bitcoin Core that has reached its EOL is
+Upgrading directly from a version of Aixcoin Core that has reached its EOL is
 possible, but it might take some time if the data directory needs to be migrated. Old
-wallet versions of Bitcoin Core are generally supported.
+wallet versions of Aixcoin Core are generally supported.
 
 Compatibility
 ==============
 
-Bitcoin Core is supported and tested on operating systems using the
-Linux Kernel 3.17+, macOS 13+, and Windows 10+. Bitcoin
+Aixcoin Core is supported and tested on operating systems using the
+Linux Kernel 3.17+, macOS 13+, and Windows 10+. Aixcoin
 Core should also work on most other Unix-like systems but is not as
-frequently tested on them. It is not recommended to use Bitcoin Core on
+frequently tested on them. It is not recommended to use Aixcoin Core on
 unsupported systems.
 
 Notable changes
@@ -52,7 +52,7 @@ Notable changes
 
 ### IPC
 
-- #33229 multiprocess: Don't require bitcoin -m argument when IPC options are used
+- #33229 multiprocess: Don't require aixcoin -m argument when IPC options are used
 - #33517 multiprocess: Fix high overhead from message logging
 - #33519 Update libmultiprocess subtree in 30.x branch
 - #33566 miner: fix empty mempool case for waitNext()
@@ -60,7 +60,7 @@ Notable changes
 
 ### P2P
 
-- #33723 chainparams: remove dnsseed.bitcoin.dashjr-list-of-p2p-nodes.us
+- #33723 chainparams: remove dnsseed.aixcoin.dashjr-list-of-p2p-nodes.us
 
 ### GUI
 
@@ -105,4 +105,4 @@ Thanks to everyone who directly contributed to this release:
 - willcl-ark
 
 As well as to everyone that helped with translations on
-[Transifex](https://explore.transifex.com/bitcoin/bitcoin/).
+[Transifex](https://explore.transifex.com/aixcoin/aixcoin/).
