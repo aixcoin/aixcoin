@@ -128,7 +128,7 @@
 #define PACKAGE_STRING $
 
 /* Define to the home page for this package. */
-#define PACKAGE_URL "https://aixcoincore.org/"
+#define PACKAGE_URL "https://aixcoin-core.github.io/"
 
 /* Define to the version of this package. */
 #define PACKAGE_VERSION $

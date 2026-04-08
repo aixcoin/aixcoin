@@ -46,7 +46,7 @@ NO_NATPMP ?=
 MULTIPROCESS ?=
 LTO ?=
 NO_HARDEN ?=
-FALLBACK_DOWNLOAD_PATH ?= https://aixcoincore.org/depends-sources
+FALLBACK_DOWNLOAD_PATH ?= https://aixcoin-core.github.io/depends-sources
 
 C_STANDARD ?= c11
 CXX_STANDARD ?= c++17

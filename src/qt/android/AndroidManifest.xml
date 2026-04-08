@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<manifest package="org.aixcoincore.qt" xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="1.0" android:versionCode="1" android:installLocation="auto">
+<manifest package="io.aixcoin-core.github.qt" xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="1.0" android:versionCode="1" android:installLocation="auto">
     <uses-sdk android:targetSdkVersion="24"/>
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -12,7 +12,7 @@
 
     <application android:hardwareAccelerated="true" android:name="org.qtproject.qt5.android.bindings.QtApplication" android:label="Aixcoin Core">
         <activity android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density"
-                  android:name="org.aixcoincore.qt.AixcoinQtActivity"
+                  android:name="io.aixcoin-core.github.qt.AixcoinQtActivity"
                   android:label="Aixcoin Core"
                   android:icon="@drawable/aixcoin"
                   android:screenOrientation="unspecified"

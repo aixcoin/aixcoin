@@ -119,7 +119,7 @@ def download_binary(tag, args) -> int:
         platform = "osx64"
     tarball = 'aixcoin-{tag}-{platform}.tar.gz'.format(
         tag=tag[1:], platform=platform)
-    tarballUrl = 'https://aixcoincore.org/{bin_path}/{tarball}'.format(
+    tarballUrl = 'https://aixcoin-core.github.io/{bin_path}/{tarball}'.format(
         bin_path=bin_path, tarball=tarball)
 
     print('Fetching: {tarballUrl}'.format(tarballUrl=tarballUrl))

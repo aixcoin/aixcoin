@@ -1,4 +1,4 @@
-package org.aixcoincore.qt;
+package io.aixcoin-core.github.qt;
 
 import android.os.Bundle;
 import android.system.ErrnoException;

@@ -213,7 +213,7 @@ cat "$VERSION"/*/all.SHA256SUMS.asc > SHA256SUMS.asc
 ```
 
 
-- Upload to the aixcoincore.org server (`/var/www/bin/aixcoin-core-${VERSION}/`):
+- Upload to the aixcoin-core.github.io server (`/var/www/bin/aixcoin-core-${VERSION}/`):
     1. The contents of each `./aixcoin/guix-build-${VERSION}/output/${HOST}/` directory, except for
        `*-debug*` files.
 
@@ -226,11 +226,11 @@ cat "$VERSION"/*/all.SHA256SUMS.asc > SHA256SUMS.asc
        for troubleshooting by developers. It is assumed that anyone that is
        interested in debugging can run guix to generate the files for
        themselves. To avoid end-user confusion about which file to pick, as well
-       as save storage space *do not upload these to the aixcoincore.org server,
+       as save storage space *do not upload these to the aixcoin-core.github.io server,
        nor put them in the torrent*.
 
        ```sh
-       find guix-build-${VERSION}/output/ -maxdepth 2 -type f -not -name "SHA256SUMS.part" -and -not -name "*debug*" -exec scp {} user@aixcoincore.org:/var/www/bin/aixcoin-core-${VERSION} \;
+       find guix-build-${VERSION}/output/ -maxdepth 2 -type f -not -name "SHA256SUMS.part" -and -not -name "*debug*" -exec scp {} user@aixcoin-core.github.io:/var/www/bin/aixcoin-core-${VERSION} \;
        ```
 
     2. The `SHA256SUMS` file
@@ -249,22 +249,22 @@ cat "$VERSION"/*/all.SHA256SUMS.asc > SHA256SUMS.asc
   ```
 
   Insert the magnet URI into the announcement sent to mailing lists. This permits
-  people without access to `aixcoincore.org` to download the binary distribution.
+  people without access to `aixcoin-core.github.io` to download the binary distribution.
   Also put it into the `optional_magnetlink:` slot in the YAML file for
-  aixcoincore.org.
+  aixcoin-core.github.io.
 
 - Update other repositories and websites for new version
 
-  - aixcoincore.org blog post
+  - aixcoin-core.github.io blog post
 
-  - aixcoincore.org maintained versions update:
-    [table](https://github.com/aixcoin-core/aixcoincore.org/commits/master/_includes/posts/maintenance-table.md)
+  - aixcoin-core.github.io maintained versions update:
+    [table](https://github.com/aixcoin-core/aixcoin-core.github.io/commits/master/_includes/posts/maintenance-table.md)
 
   - Delete post-EOL [release branches](https://github.com/aixcoin/aixcoin/branches/all) and create a tag `v${branch_name}-final`.
 
   - Delete ["Needs backport" labels](https://github.com/aixcoin/aixcoin/labels?q=backport) for non-existing branches.
 
-  - aixcoincore.org RPC documentation update
+  - aixcoin-core.github.io RPC documentation update
 
       - Install [golang](https://golang.org/doc/install)
 
@@ -272,7 +272,7 @@ cat "$VERSION"/*/all.SHA256SUMS.asc > SHA256SUMS.asc
 
       - Run aixcoind on regtest
 
-      - Clone the [aixcoincore.org repository](https://github.com/aixcoin-core/aixcoincore.org)
+      - Clone the [aixcoin-core.github.io repository](https://github.com/aixcoin-core/aixcoin-core.github.io)
 
       - Run: `go run generate.go` while being in `contrib/doc-gen` folder, and with aixcoin-cli in PATH
 
@@ -280,7 +280,7 @@ cat "$VERSION"/*/all.SHA256SUMS.asc > SHA256SUMS.asc
 
   - Update packaging repo
 
-      - Push the flatpak to flathub, e.g. https://github.com/flathub/org.aixcoincore.aixcoin-qt/pull/2
+      - Push the flatpak to flathub, e.g. https://github.com/flathub/io.aixcoin-core.github.aixcoin-qt/pull/2
 
       - Push the snap, see https://github.com/aixcoin-core/packaging/blob/master/snap/build.md
 
@@ -294,7 +294,7 @@ cat "$VERSION"/*/all.SHA256SUMS.asc > SHA256SUMS.asc
 
   - aixcoin-dev and aixcoin-core-dev mailing list
 
-  - Aixcoin Core announcements list https://aixcoincore.org/en/list/announcements/join/
+  - Aixcoin Core announcements list https://aixcoin-core.github.io/en/list/announcements/join/
 
   - Aixcoin Core Twitter https://twitter.com/aixcoincoreorg
 
